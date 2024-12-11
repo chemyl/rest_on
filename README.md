@@ -6,3 +6,7 @@
 * In fact, it should be available to perform work of almost any complexity.
 
 ![Rust Version](https://img.shields.io/badge/rust-1.83.0%20-green)
+![Actix-web Version](https://img.shields.io/badge/actix_web-4.3.1%20-green)
+![Tokio Version](https://img.shields.io/badge/tokio-1.28.0%20-green)
+![reqwest Version](https://img.shields.io/badge/reqwest-0.11.17%20-green)
+![serde Version](https://img.shields.io/badge/serde-1.0.160%20-green)
