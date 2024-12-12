@@ -1,3 +1,12 @@
+mod ai_functions;
+mod api_handler;
+mod models;
+mod helpers;
+
+use helpers::command_lines::get_user_response;
+
+
 fn main() {
-    println!("Hello, world!");
+    let user_req: String = get_user_response("What are we building today?");
+    dbg!(user_req);
 }
