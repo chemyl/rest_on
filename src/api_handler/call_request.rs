@@ -9,29 +9,25 @@ use std::env;
 pub async fn call_gpt(message: Vec<Message>) -> Result<String, Box<dyn std::error::Error + Send>> {
     dotenv().ok();
 
-    // Extract api keys
+    // Extract api keys from .env
     let api_key: String = env::var("OPEN_AI_KEY").expect("OPEN_AI_KEY not found");
     let api_org: String = env::var("OPEN_AI_ORG").expect("OPEN_AI_ORG not found");
 
-    // Confirm endpoint
+    // Confirm base url endpoint
     let url: &str = "https://api.openai.com/v1/chat/completions";
 
-    // Create headers
+    // Create client headers
     let mut headers = HeaderMap::new();
-
-    // Create api key headers
     headers.insert(
         "authorization",
         HeaderValue::from_str(&format!("Bearer {}", api_key))
             .map_err(|e| -> Box<dyn std::error::Error + Send>{ Box::new(e) })?);
-
-    // Create OpenAI org Header
     headers.insert(
         "OpenAI-Organization",
         HeaderValue::from_str(&api_org.as_str())
             .map_err(|e| -> Box<dyn std::error::Error + Send>{ Box::new(e) })?);
 
-    //create client
+    // create reqwest client
     let client = reqwest::Client::builder()
         .default_headers(headers)
         .build()
@@ -53,8 +49,7 @@ pub async fn call_gpt(message: Vec<Message>) -> Result<String, Box<dyn std::erro
     //
     // dbg!(&res_raw.text().await.unwrap());
 
-
-    //GET API response
+    //crete request to url and get response as APIResponse
     let res: APIResponse = client
         .post(url)
         .json(&chat_completion)
@@ -65,9 +60,16 @@ pub async fn call_gpt(message: Vec<Message>) -> Result<String, Box<dyn std::erro
         .await
         .map_err(|e| -> Box<dyn std::error::Error + Send>{ Box::new(e) })?;
 
-    //send response
+    //parse 'content' from massage from choice from api call response
     Ok(res.choices[0].message.content.clone())
 }
+
+
+/*
+
+    Unit Tests
+
+*/
 
 #[cfg(test)]
 mod tests {
