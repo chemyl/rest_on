@@ -1,4 +1,4 @@
-use crate::models::general::llm::Message;
+use crate::models::general::llm::{ChatCompletion, Message};
 
 use dotenv::dotenv;
 use reqwest::header::{HeaderMap, HeaderValue};
@@ -30,4 +30,40 @@ pub async fn call_gpt(message: Vec<Message>) {
         "OpenAI-Organization",
         HeaderValue::from_str(&api_org.as_str()).unwrap(),
     );
+
+    //create client
+    let client = reqwest::Client::builder()
+        .default_headers(headers)
+        .build()
+        .unwrap();
+
+    // create chat completion
+    let chat_completion: ChatCompletion = ChatCompletion {
+        model: "gpt-3.5-turbo".to_string(),
+        messages: message,
+        temperature: 0.1,
+    };
+
+    // Troubleshooting
+    let res_raw = client
+        .post(url)
+        .json(&chat_completion)
+        .send()
+        .await.unwrap();
+
+    dbg!(&res_raw.text().await.unwrap());
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[tokio::test]
+    async fn test_to_call_gpt() {
+        let message = Message {
+            role: "user".to_string(),
+            content: "hi this-is test. Give me a shot response".to_string(),
+        };
+        let messages: Vec<Message> = vec![message];
+        call_gpt(messages).await;
+    }
 }
