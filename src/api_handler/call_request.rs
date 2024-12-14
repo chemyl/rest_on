@@ -1,4 +1,4 @@
-use crate::models::general::llm::{ChatCompletion, Message};
+use crate::models::general::llm::{APIResponse, ChatCompletion, Message};
 
 use dotenv::dotenv;
 use reqwest::header::{HeaderMap, HeaderValue};
@@ -6,7 +6,7 @@ use std::env;
 // backend_hive
 
 // Call LLM GPT
-pub async fn call_gpt(message: Vec<Message>) {
+pub async fn call_gpt(message: Vec<Message>) -> Result<String, Box<dyn std::error::Error + Send>> {
     dotenv().ok();
 
     // Extract api keys
@@ -22,20 +22,20 @@ pub async fn call_gpt(message: Vec<Message>) {
     // Create api key headers
     headers.insert(
         "authorization",
-        HeaderValue::from_str(&format!("Bearer {}", api_key)).unwrap(),
-    );
+        HeaderValue::from_str(&format!("Bearer {}", api_key))
+            .map_err(|e| -> Box<dyn std::error::Error + Send>{ Box::new(e) })?);
 
     // Create OpenAI org Header
     headers.insert(
         "OpenAI-Organization",
-        HeaderValue::from_str(&api_org.as_str()).unwrap(),
-    );
+        HeaderValue::from_str(&api_org.as_str())
+            .map_err(|e| -> Box<dyn std::error::Error + Send>{ Box::new(e) })?);
 
     //create client
     let client = reqwest::Client::builder()
         .default_headers(headers)
         .build()
-        .unwrap();
+        .map_err(|e| -> Box<dyn std::error::Error + Send>{ Box::new(e) })?;
 
     // create chat completion
     let chat_completion: ChatCompletion = ChatCompletion {
@@ -44,14 +44,29 @@ pub async fn call_gpt(message: Vec<Message>) {
         temperature: 0.1,
     };
 
-    // Troubleshooting
-    let res_raw = client
+    // // Troubleshooting
+    // let res_raw = client
+    //     .post(url)
+    //     .json(&chat_completion)
+    //     .send()
+    //     .await.unwrap();
+    //
+    // dbg!(&res_raw.text().await.unwrap());
+
+
+    //GET API response
+    let res: APIResponse = client
         .post(url)
         .json(&chat_completion)
         .send()
-        .await.unwrap();
+        .await
+        .map_err(|e| -> Box<dyn std::error::Error + Send>{ Box::new(e) })?
+        .json()
+        .await
+        .map_err(|e| -> Box<dyn std::error::Error + Send>{ Box::new(e) })?;
 
-    dbg!(&res_raw.text().await.unwrap());
+    //send response
+    Ok(res.choices[0].message.content.clone())
 }
 
 #[cfg(test)]
@@ -64,6 +79,15 @@ mod tests {
             content: "hi this-is test. Give me a shot response".to_string(),
         };
         let messages: Vec<Message> = vec![message];
-        call_gpt(messages).await;
+        let res: Result<String, Box<dyn std::error::Error + Send>> = call_gpt(messages).await;
+        match res {
+            Ok(response_str) => {
+                dbg!(&response_str);
+                assert!(true);
+            }
+            Err(_) => {
+                assert!(false);
+            }
+        }
     }
 }
