@@ -13,6 +13,3 @@
 ![Tokio Version](https://img.shields.io/badge/tokio-1.28.0%20-green)
 ![reqwest Version](https://img.shields.io/badge/reqwest-0.11.17%20-green)
 ![serde Version](https://img.shields.io/badge/serde-1.0.160%20-green)
-
-
-# Call OpenAI models
