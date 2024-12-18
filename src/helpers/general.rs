@@ -1,6 +1,8 @@
 use crate::api_handler::call_request::call_gpt;
 use crate::helpers::command_lines::PrintCommand;
 use crate::models::general::llm::Message;
+use serde::de::DeserializeOwned;
+use serde::Deserialize;
 
 
 // Extend AI function for specific output
@@ -35,7 +37,7 @@ pub async fn ai_task_request(
     msg_context: String,
     agent_position: &str,
     agent_operation: &str,
-    function_pass: for<'a> fn(&'a str) -> &'static str,) -> String
+    function_pass: for<'a> fn(&'a str) -> &'static str, ) -> String
 {
     // Расширяет функцию с помощью extend_ai_function, чтобы создать сообщение для LLM.
     let extend_message: Message = extend_ai_function(function_pass, &msg_context);
@@ -52,6 +54,30 @@ pub async fn ai_task_request(
         Err(_) => call_gpt(vec![extend_message.clone()])
             .await.expect("Could not call GPT function"),
     }
+}
+
+
+/*
+        Эта функция ai_task_request_decoded предназначена для вызова GPT через асинхронную функцию ai_task_request,
+            получения строки-ответа, а затем преобразования (десериализации)
+            этой строки в объект нужного типа T с использованием библиотеки serde.
+*/
+pub async fn ai_task_request_decoded<T: DeserializeOwned>(          // тип T должен поддерживать десериализацию из JSON.
+    msg_context: String,
+    agent_position: &str,
+    agent_operation: &str,
+    function_pass: for<'a> fn(&'a str) -> &'static str,
+) -> T {
+
+    let llm_response: String = ai_task_request(
+        msg_context,
+        agent_position,
+        agent_operation,
+        function_pass
+    ).await;
+//  Десериализует строку JSON в объект типа T
+    let decoded_response: T = serde_json::from_str(&llm_response.as_str()).expect("Could not deserialize GPT response from serde_json");
+    decoded_response
 }
 
 
