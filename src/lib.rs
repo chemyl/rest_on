@@ -4,7 +4,6 @@ use proc_macro::TokenStream;
 use quote::{quote, ToTokens};
 use syn::{parse_macro_input, ItemFn};
 
-
 // Его задача — взять функцию, помеченную атрибутом #[function_to_string],
 // и сгенерировать новую функцию, которая возвращает текстовое представление исходной функции.
 #[proc_macro_attribute]

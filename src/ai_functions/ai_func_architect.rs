@@ -1,6 +1,5 @@
 use auto_gpt_agent::function_to_string as ai;
 
-
 #[ai]
 pub fn print_project_scope(_project_description: &str) {
     /// Input: Takes in a user request to build a website project description

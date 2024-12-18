@@ -35,17 +35,19 @@ pub async fn call_gpt(message: Vec<Message>) -> Result<String, Box<dyn std::erro
     headers.insert(
         "authorization",
         HeaderValue::from_str(&format!("Bearer {}", api_key))
-            .map_err(|e| -> Box<dyn std::error::Error + Send>{ Box::new(e) })?);
+            .map_err(|e| -> Box<dyn std::error::Error + Send> { Box::new(e) })?,
+    );
     headers.insert(
         "OpenAI-Organization",
         HeaderValue::from_str(&api_org.as_str())
-            .map_err(|e| -> Box<dyn std::error::Error + Send>{ Box::new(e) })?);
+            .map_err(|e| -> Box<dyn std::error::Error + Send> { Box::new(e) })?,
+    );
 
     // Создаётся клиент с предварительно заданными заголовками (default_headers).
     let client = reqwest::Client::builder()
         .default_headers(headers)
         .build()
-        .map_err(|e| -> Box<dyn std::error::Error + Send>{ Box::new(e) })?;
+        .map_err(|e| -> Box<dyn std::error::Error + Send> { Box::new(e) })?;
 
     // create chat completion
     /*
@@ -74,17 +76,16 @@ pub async fn call_gpt(message: Vec<Message>) -> Result<String, Box<dyn std::erro
         .json(&chat_completion)
         .send()
         .await
-        .map_err(|e| -> Box<dyn std::error::Error + Send>{ Box::new(e) })?
+        .map_err(|e| -> Box<dyn std::error::Error + Send> { Box::new(e) })?
         .json()
         .await
-        .map_err(|e| -> Box<dyn std::error::Error + Send>{ Box::new(e) })?;
+        .map_err(|e| -> Box<dyn std::error::Error + Send> { Box::new(e) })?;
 
     //parse 'content' from massage from choice from api call response
     // Первый элемент из массива choices (модель может вернуть несколько вариантов ответа).
     // Поле message.content, которое содержит текст ответа.
     Ok(res.choices[0].message.content.clone())
 }
-
 
 /*
 

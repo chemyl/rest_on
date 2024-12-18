@@ -34,7 +34,6 @@ pub fn print_fixed_code(_project_description: &str) {
     println!(OUTPUT);
 }
 
-
 #[ai]
 pub fn print_rest_api_endpoints(_project_description: &str) {
     /// INPUT: Takes in Rust webserver CODE_INPUT based on actix-web

@@ -1,6 +1,8 @@
-use crossterm::{style::{Color, ResetColor, SetForegroundColor}, ExecutableCommand, QueueableCommand};
+use crossterm::{
+    style::{Color, ResetColor, SetForegroundColor},
+    ExecutableCommand, QueueableCommand,
+};
 use std::io::{stdin, stdout};
-
 
 #[derive(PartialEq, Debug)]
 pub enum PrintCommand {
@@ -43,10 +45,11 @@ pub fn get_user_response(question: &str) -> String {
     // reset color
     stdout.execute(ResetColor).unwrap();
     let mut user_response = String::new();
-    stdin().read_line(&mut user_response).expect("Failed to read response");
+    stdin()
+        .read_line(&mut user_response)
+        .expect("Failed to read response");
     return user_response.trim().to_string();
 }
-
 
 #[cfg(test)]
 mod tests {
