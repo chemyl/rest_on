@@ -32,13 +32,13 @@ impl BasicTrait for BasicAgent {
     fn get_objective(&self) -> &String {
         &self.objective
     }
-    fn get_memory(&mut self) -> &Vec<Message> {
-        &self.memory
-    }
     fn get_position(&self) -> &String {
         &self.position
     }
     fn get_state(&self) -> &AgentState {
         &self.state
+    }
+    fn get_memory(&mut self) -> &Vec<Message> {
+        &self.memory
     }
 }
