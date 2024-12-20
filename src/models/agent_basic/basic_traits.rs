@@ -9,4 +9,3 @@ pub trait BasicTrait {
     fn get_state(&self) -> &AgentState;
     fn get_memory(&mut self) -> &Vec<Message>;
 }
-
