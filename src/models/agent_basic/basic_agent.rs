@@ -23,7 +23,7 @@ impl BasicTrait for BasicAgent {
             objective,
             position,
             state: AgentState::Discovery,
-            memory: Vec::from(()),
+            memory: Vec::new(),
         }
     }
     fn update_state(&mut self, new_state: AgentState) {
