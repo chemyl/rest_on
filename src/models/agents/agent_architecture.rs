@@ -20,7 +20,7 @@ pub struct AgentSolutionArchitect {
 }
 
 impl AgentSolutionArchitect {
-    fn new() -> AgentSolutionArchitect {
+    pub fn new() -> AgentSolutionArchitect {
         let attributes = BasicAgent {
             objective: "Gathers information and design solution for development".to_string(),
             position: "Solution Architect".to_string(),
@@ -40,8 +40,7 @@ impl AgentSolutionArchitect {
             &self.attributes.position,
             get_function_string!(print_project_scope),
             print_project_scope,
-        )
-            .await;
+        ).await;
         fact_sheet.project_scope = Some(ai_response.clone());
         self.attributes.update_state(AgentState::Finished);
         ai_response

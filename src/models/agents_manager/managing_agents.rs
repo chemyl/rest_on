@@ -1,4 +1,7 @@
-use crate::models::agent_basic::basic_agent::BasicAgent;
+use crate::ai_functions::ai_func_manager::convert_user_input_to_goal;
+use crate::helpers::general::ai_task_request_decoded;
+use crate::models::agent_basic::basic_agent::{AgentState, BasicAgent};
+use crate::models::agents::agent_architecture::AgentSolutionArchitect;
 use crate::models::agents::agent_traits::{FactSheet, SpecialFunctions};
 
 //ManagingAgent — управляет группой агентов через абстрактный трейт.
@@ -7,5 +10,72 @@ use crate::models::agents::agent_traits::{FactSheet, SpecialFunctions};
 pub struct ManagingAgent {
     attribute: BasicAgent,
     fact_sheet: FactSheet,
+    //Управляет группой агентов через вектор агентов (Vec<Box<dyn SpecialFunctions>>), реализующих трейт SpecialFunctions.
     agents: Vec<Box<dyn SpecialFunctions>>,
+}
+
+// создать экземпляр ManagingAgent через асинхронную функцию new, которая принимает
+// пользовательский запрос и обрабатывает его с помощью AI-функций для генерации описания проекта.
+impl ManagingAgent {
+    pub async fn new(user_request: String) -> Result<Self, Box<dyn std::error::Error>> {
+        let agent_position = "Project Manager".to_string();
+        let attributes = BasicAgent {
+            objective: "Manage agents who build a website".to_string(),
+            position: agent_position.clone(),
+            state: AgentState::Discovery,
+            memory: vec![],
+        };
+        //ai_task_request_decoded для преобразования пользовательского запроса в описание проекта.
+        let project_description: String = ai_task_request_decoded(
+            user_request,
+            &agent_position,
+            get_function_string!(convert_user_input_to_goal),
+            convert_user_input_to_goal,
+        ).await;
+
+        let agents: Vec<Box<dyn SpecialFunctions>> = vec![];
+        let mut fact_sheet: FactSheet = FactSheet {
+            project_description,
+            project_scope: None,
+            external_urls: None,
+            backend_code: None,
+            api_endpoint_schema: None,
+        };
+        Ok(Self {
+            attribute,
+            agents,
+            fact_sheet,
+        })
+    }
+    fn add_agent(&mut self, agent: Box<dyn SpecialFunctions>) {
+        self.agents.push(agent);
+    }
+    fn create_agents(&mut self){
+        self.add_agent(Box::new(AgentSolutionArchitect::new()));
+        // self.add_agent(Box::new(AgentSolutionArchitect::new()));
+        // self.add_agent(Box::new(AgentSolutionArchitect::new()));
+        // self.add_agent(Box::new(AgentSolutionArchitect::new()));
+    }
+
+    pub async fn execute_project(&mut self){
+        self.create_agents();
+        for agent in &mut self.agents {
+            let agent_result: Result<(),Box<dyn std::error::Error>> =
+                agent.execute(&mut self.fact_sheet).await;
+            let agent_info: &BasicAgent = agent.get_attributes_from_agent();
+            dbg!(agent_info);
+
+        }
+    }
+}
+
+#[cfg(test)]
+mod test{
+    use super::*;
+
+    #[tokio::test]
+    fn manager_agent_test(){
+
+
+    }
 }
