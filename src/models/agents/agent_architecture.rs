@@ -99,7 +99,7 @@ impl SpecialFunctions for AgentSolutionArchitect {
                                     exclude_urls.push(url.clone());
                                 }
                             }
-                            Err(_) => println!("Error checking URL: {}", url),
+                            Err(_) => println!("Error while checking URL: {}", url),
                         }
                     };
                     if exclude_urls.len() > 0 {
@@ -123,6 +123,31 @@ impl SpecialFunctions for AgentSolutionArchitect {
             }
         }
         Ok(())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[tokio::test]
+    async fn tests_solution_architect() {
+        let mut agent: AgentSolutionArchitect = AgentSolutionArchitect::new();
+
+        let mut fact_sheet: FactSheet = FactSheet {
+            project_description: "Build a full stack crud website with user login and logout that shows latest Forex prices".to_string(),
+            project_scope: None,
+            external_urls: None,
+            backend_code: None,
+            api_endpoint_schema: None,
+        };
+
+        agent.execute(&mut fact_sheet)
+            .await
+            .expect("Unable to execute Solutions Architect Agent");
+        assert_ne!(fact_sheet.project_scope, None);
+        assert!(fact_sheet.external_urls.is_some());
+        dbg!(fact_sheet);
     }
 }
 
