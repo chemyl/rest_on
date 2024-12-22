@@ -1,5 +1,5 @@
 use crate::ai_functions::ai_func_manager::convert_user_input_to_goal;
-use crate::helpers::general::ai_task_request_decoded;
+use crate::helpers::general::{ai_task_request, ai_task_request_decoded};
 use crate::models::agent_basic::basic_agent::{AgentState, BasicAgent};
 use crate::models::agents::agent_architecture::AgentSolutionArchitect;
 use crate::models::agents::agent_traits::{FactSheet, SpecialFunctions};
@@ -8,7 +8,7 @@ use crate::models::agents::agent_traits::{FactSheet, SpecialFunctions};
 //Менеджер может работать с агентами, имеющими разные реализации SpecialFunctions, не зная их внутренностей заранее.
 #[derive(Debug)]
 pub struct ManagingAgent {
-    attribute: BasicAgent,
+   _attributes: BasicAgent,
     fact_sheet: FactSheet,
     //Управляет группой агентов через вектор агентов (Vec<Box<dyn SpecialFunctions>>), реализующих трейт SpecialFunctions.
     agents: Vec<Box<dyn SpecialFunctions>>,
@@ -25,8 +25,8 @@ impl ManagingAgent {
             state: AgentState::Discovery,
             memory: vec![],
         };
-        //ai_task_request_decoded для преобразования пользовательского запроса в описание проекта.
-        let project_description: String = ai_task_request_decoded(
+        //ai_task_request для преобразования пользовательского запроса в описание проекта.
+        let project_description: String = ai_task_request(
             user_request,
             &agent_position,
             get_function_string!(convert_user_input_to_goal),
@@ -34,6 +34,7 @@ impl ManagingAgent {
         ).await;
 
         let agents: Vec<Box<dyn SpecialFunctions>> = vec![];
+
         let mut fact_sheet: FactSheet = FactSheet {
             project_description,
             project_scope: None,
@@ -42,7 +43,7 @@ impl ManagingAgent {
             api_endpoint_schema: None,
         };
         Ok(Self {
-            attribute,
+            _attributes:attributes,
             agents,
             fact_sheet,
         })
@@ -52,8 +53,6 @@ impl ManagingAgent {
     }
     fn create_agents(&mut self){
         self.add_agent(Box::new(AgentSolutionArchitect::new()));
-        // self.add_agent(Box::new(AgentSolutionArchitect::new()));
-        // self.add_agent(Box::new(AgentSolutionArchitect::new()));
         // self.add_agent(Box::new(AgentSolutionArchitect::new()));
     }
 
@@ -74,8 +73,12 @@ mod test{
     use super::*;
 
     #[tokio::test]
-    fn manager_agent_test(){
+   async fn test_manager_agent(){
+        let user_request: &str = "I need a full stack app that fetch and tracks user fitness progress. Need to include timezone info from the web";
 
+        let mut manager = ManagingAgent::new(user_request.to_string()).await.expect("Error during manager creation");
+        manager.execute_project().await;
+        dbg!(manager.fact_sheet);
 
     }
 }
