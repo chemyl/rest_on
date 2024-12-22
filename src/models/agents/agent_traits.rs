@@ -1,10 +1,11 @@
 use crate::models::agent_basic::basic_agent::BasicAgent;
+use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Copy, Clone)]
 pub struct ProjectScope {
-    pub is_crude_required: bool,
+    pub is_crud_required: bool,
     pub is_user_login_and_logout: bool,
     pub is_external_urls_required: bool,
 }
@@ -28,6 +29,7 @@ pub struct FactSheet {
     pub api_endpoint_schema: Option<Vec<RouteObject>>,
 }
 
+#[async_trait]
 //SpecialFunctions — задаёт интерфейс взаимодействия между менеджером и агентами.
 pub trait SpecialFunctions: Debug {
     // Метод Возвращает ссылку на базовый агент (BasicAgent), представляющий атрибуты агента.

@@ -13,21 +13,18 @@ const API_SCHEMA_PATH: &str = "/Users/Anatolii Maltsev/Documents/Coding/Rust/Pro
 
 // Extend AI function for specific output
 pub fn extend_ai_function(ai_func: fn(&str) -> &'static str, func_input: &str) -> Message {
-    // Вызывает функцию ai_func, передавая ей func_input, и получает результат в виде строки (ai_function_string).
-    let ai_function_string = ai_func(func_input);
+    let ai_function_str: &str = ai_func(func_input);
 
     // Extend the string to encourage only printing the output
-
     let msg: String = format!(
-        "FUNCTION {} INSTRUCTION: You are a function printer. \
-    You ONLY prints the result of a function. \
-    NOTHING else. \
-    NO commentary. \
-    Here is the input to the function: {}",
-        ai_function_string, func_input
+        "FUNCTION: {}
+  INSTRUCTION: You are a function printer. You ONLY print the results of functions.
+  Nothing else. No commentary. Here is the input to the function: {}.
+  Print out what the function will return.",
+        ai_function_str, func_input
     );
 
-    // Возвращает Message, который используется для отправки запроса в модель GPT.
+    // Return message
     Message {
         role: "system".to_string(),
         content: msg,
@@ -48,20 +45,21 @@ pub async fn ai_task_request(
     function_pass: for<'a> fn(&'a str) -> &'static str,
 ) -> String {
     // Расширяет функцию с помощью extend_ai_function, чтобы создать сообщение для LLM.
-    let extend_message: Message = extend_ai_function(function_pass, &msg_context);
+    let extended_msg: Message = extend_ai_function(function_pass, &msg_context);
 
     // Печатает текущую информацию о вызове агента
     PrintCommand::AICall.print_agent_message(agent_position, agent_operation);
 
     // Вызывает LLM через call_gpt с созданным сообщением extend_message
-    let llm_response_res = call_gpt(vec![extend_message.clone()]).await;
+    let llm_response_res: Result<String, Box<dyn std::error::Error + Send>> =
+        call_gpt(vec![extended_msg.clone()]).await;
 
     // возвращает ответ модели. or try again
     match llm_response_res {
-        Ok(llm_response) => llm_response,
-        Err(_) => call_gpt(vec![extend_message.clone()])
+        Ok(llm_resp) => llm_resp,
+        Err(_) => call_gpt(vec![extended_msg.clone()])
             .await
-            .expect("Could not call GPT function"),
+            .expect("Failed twice to call OpenAI"),
     }
 }
 
@@ -79,12 +77,8 @@ pub async fn ai_task_request_decoded<T: DeserializeOwned>(
 ) -> T {
     let llm_response: String =
         ai_task_request(msg_context, agent_position, agent_operation, function_pass).await;
-    //  Десериализует строку JSON в объект типа T
-    let decoded_response: T = serde_json::from_str(&llm_response.as_str())
-        .expect("Could not deserialize GPT response from serde_json");
-    decoded_response
+    serde_json::from_str(llm_response.as_str()).expect("Failed to decode ai response from serde_json")
 }
-
 // Надо убедиться, что все url которые предоставляет LLM действительно работают
 // reqwest клиент отправляет запрос на url и возвращает статус ответа.
 pub async fn check_status_code(client: &Client, url: &str) -> Result<u16, reqwest::Error> {
