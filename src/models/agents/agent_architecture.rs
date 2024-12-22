@@ -98,7 +98,10 @@ impl SpecialFunctions for AgentSolutionArchitect {
                                     exclude_urls.push(url.clone());
                                 }
                             }
-                            Err(_) => println!("Error while checking URL: {}", url),
+                            Err(_) =>{
+                                exclude_urls.push(url.clone());
+                                println!("Error while checking URL: {}", url);
+                            }
                         }
                     };
                     if exclude_urls.len() > 0 {
