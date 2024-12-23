@@ -8,7 +8,7 @@ use crate::models::agents::agent_traits::{FactSheet, SpecialFunctions};
 //Менеджер может работать с агентами, имеющими разные реализации SpecialFunctions, не зная их внутренностей заранее.
 #[derive(Debug)]
 pub struct ManagingAgent {
-   _attributes: BasicAgent,
+    _attributes: BasicAgent,
     fact_sheet: FactSheet,
     //Управляет группой агентов через вектор агентов (Vec<Box<dyn SpecialFunctions>>), реализующих трейт SpecialFunctions.
     agents: Vec<Box<dyn SpecialFunctions>>,
@@ -31,7 +31,8 @@ impl ManagingAgent {
             &agent_position,
             get_function_string!(convert_user_input_to_goal),
             convert_user_input_to_goal,
-        ).await;
+        )
+        .await;
 
         let agents: Vec<Box<dyn SpecialFunctions>> = vec![];
 
@@ -43,7 +44,7 @@ impl ManagingAgent {
             api_endpoint_schema: None,
         };
         Ok(Self {
-            _attributes:attributes,
+            _attributes: attributes,
             agents,
             fact_sheet,
         })
@@ -51,34 +52,34 @@ impl ManagingAgent {
     fn add_agent(&mut self, agent: Box<dyn SpecialFunctions>) {
         self.agents.push(agent);
     }
-    fn create_agents(&mut self){
+    fn create_agents(&mut self) {
         self.add_agent(Box::new(AgentSolutionArchitect::new()));
         // self.add_agent(Box::new(AgentSolutionArchitect::new()));
     }
 
-    pub async fn execute_project(&mut self){
+    pub async fn execute_project(&mut self) {
         self.create_agents();
         for agent in &mut self.agents {
-            let agent_result: Result<(),Box<dyn std::error::Error>> =
+            let agent_result: Result<(), Box<dyn std::error::Error>> =
                 agent.execute(&mut self.fact_sheet).await;
             let agent_info: &BasicAgent = agent.get_attributes_from_agent();
             dbg!(agent_info);
-
         }
     }
 }
 
 #[cfg(test)]
-mod test{
+mod test {
     use super::*;
 
     #[tokio::test]
-   async fn test_manager_agent(){
+    async fn test_manager_agent() {
         let user_request: &str = "I need a full stack app that fetch and tracks user fitness progress. Need to include timezone info from the web";
 
-        let mut manager = ManagingAgent::new(user_request.to_string()).await.expect("Error during manager creation");
+        let mut manager = ManagingAgent::new(user_request.to_string())
+            .await
+            .expect("Error during manager creation");
         manager.execute_project().await;
         dbg!(manager.fact_sheet);
-
     }
 }

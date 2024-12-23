@@ -77,8 +77,9 @@ pub async fn ai_task_request_decoded<T: DeserializeOwned>(
 ) -> T {
     let llm_response: String =
         ai_task_request(msg_context, agent_position, agent_operation, function_pass).await;
-    println!("{}",llm_response.as_str());
-    serde_json::from_str(llm_response.as_str()).expect("Failed to decode ai response from serde_json")
+    println!("{}", llm_response.as_str());
+    serde_json::from_str(llm_response.as_str())
+        .expect("Failed to decode ai response from serde_json")
 }
 // Надо убедиться, что все url которые предоставляет LLM действительно работают
 // reqwest клиент отправляет запрос на url и возвращает статус ответа.
