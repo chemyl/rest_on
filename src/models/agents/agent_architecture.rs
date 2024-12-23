@@ -40,13 +40,18 @@ impl AgentSolutionArchitect {
             &self.attributes.position,
             get_function_string!(print_project_scope),
             print_project_scope,
-        ).await;
+        )
+        .await;
         fact_sheet.project_scope = Some(ai_response.clone());
         self.attributes.update_state(AgentState::Finished);
         ai_response
     }
     // Retrieve Project external links
-    async fn call_determine_external_link(&mut self, fact_sheet: &mut FactSheet, msg_context: String) {
+    async fn call_determine_external_link(
+        &mut self,
+        fact_sheet: &mut FactSheet,
+        msg_context: String,
+    ) {
         //Использует ai_task_request_decoded для получения внешних ссылок проекта с помощью функции print_site_urls.
         let ai_response: Vec<String> = ai_task_request_decoded::<Vec<String>>(
             msg_context,
@@ -54,7 +59,7 @@ impl AgentSolutionArchitect {
             get_function_string!(print_site_urls),
             print_site_urls,
         )
-            .await;
+        .await;
         fact_sheet.external_urls = Some(ai_response);
         self.attributes.update_state(AgentState::UnitTesting);
     }
@@ -73,23 +78,31 @@ impl SpecialFunctions for AgentSolutionArchitect {
                     let project_scope: ProjectScope = self.call_project_scope(fact_sheet).await;
                     // confirm is external links
                     if project_scope.is_external_urls_required {
-                        self.call_determine_external_link(fact_sheet, fact_sheet.project_description.clone()).await;
+                        self.call_determine_external_link(
+                            fact_sheet,
+                            fact_sheet.project_description.clone(),
+                        )
+                        .await;
                         self.attributes.state = AgentState::UnitTesting;
                     }
                 }
                 AgentState::UnitTesting => {
                     let mut exclude_urls: Vec<String> = vec![];
-                    let client: Client = Client::builder()
-                        .timeout(Duration::from_secs(5))
-                        .build()?;
+                    let client: Client =
+                        Client::builder().timeout(Duration::from_secs(5)).build()?;
 
                     // fin broken urls
-                    let urls: &Vec<String> = fact_sheet.external_urls.as_ref().expect("No URL object in fact_sheet");
+                    let urls: &Vec<String> = fact_sheet
+                        .external_urls
+                        .as_ref()
+                        .expect("No URL object in fact_sheet");
 
                     for url in urls {
                         let endpoint_str: String = format!("Testing URL endpoint: {}", url);
                         PrintCommand::UnitTest.print_agent_message(
-                            self.attributes.position.as_str(), endpoint_str.as_str());
+                            self.attributes.position.as_str(),
+                            endpoint_str.as_str(),
+                        );
 
                         // perform url Test
                         match check_status_code(&client, url).await {
@@ -98,12 +111,12 @@ impl SpecialFunctions for AgentSolutionArchitect {
                                     exclude_urls.push(url.clone());
                                 }
                             }
-                            Err(_) =>{
+                            Err(_) => {
                                 exclude_urls.push(url.clone());
                                 println!("Error while checking URL: {}", url);
                             }
                         }
-                    };
+                    }
                     if exclude_urls.len() > 0 {
                         let new_urls: Vec<String> = fact_sheet
                             .external_urls
@@ -144,7 +157,8 @@ mod tests {
             api_endpoint_schema: None,
         };
 
-        agent.execute(&mut fact_sheet)
+        agent
+            .execute(&mut fact_sheet)
             .await
             .expect("Unable to execute Solutions Architect Agent");
         assert_ne!(fact_sheet.project_scope, None);
@@ -152,4 +166,3 @@ mod tests {
         dbg!(fact_sheet);
     }
 }
-
