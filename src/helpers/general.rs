@@ -93,6 +93,12 @@ pub fn read_code_template_contents() -> String {
     fs::read_to_string(&path).expect("Could not read code template contents")
 }
 
+// Exec main
+pub fn read_exec_main_contents() -> String {
+    let path: String = EXECUTE_MAIN_PATH.to_string();
+    fs::read_to_string(&path).expect("Could not read code template contents")
+}
+
 // Извлечь код и файла шаблона и перезаписать новым кодом. Сохранить новый код бекенда, когда LLm напишет его
 // Функция запишет новую версию бекенда, полученную из параметра в виде строки в файл, указанный по адресу
 pub fn save_backend_code(contents: &str) {
