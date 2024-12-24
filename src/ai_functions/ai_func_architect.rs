@@ -1,6 +1,6 @@
-use auto_gpt_agent::function_to_string as ai;
+use auto_gpt_agent::function_to_string as ai_function;
 
-#[ai]
+#[ai_function]
 pub fn print_project_scope(_project_description: &str) {
     /// Input: Takes in a user request to build a website project description
     /// Function: Converts user request into JSON response of information items required for a website build.
@@ -27,10 +27,10 @@ pub fn print_project_scope(_project_description: &str) {
     ///     "is_user_login_and_logout": false
     ///     "is_external_urls_required": bool false
     ///   }
-    println!(OUTPUT);
+    println!(OUTPUT)
 }
 
-#[ai]
+#[ai_function]
 pub fn print_site_urls(_project_description: &str) {
     /// Input: Takes in a project description of a website build
     /// Function: Outputs a list of external public API endpoints that should be used in the building of the website
@@ -41,5 +41,5 @@ pub fn print_site_urls(_project_description: &str) {
     ///   website_team_spec = "website_purpose: Some("\"Provides Crypto Price Data from Binance and Kraken\"",)"
     ///   prints:
     /// ["https://api.binance.com/api/v3/exchangeInfo", "https://api.binance.com/api/v3/klines?symbol=BTCUSDT&interval=1d"]
-    println!(OUTPUT);
+    println!(OUTPUT)
 }

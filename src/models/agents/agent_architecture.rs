@@ -2,7 +2,7 @@ use crate::ai_functions::ai_func_architect::{print_project_scope, print_site_url
 use crate::helpers::command_lines::PrintCommand;
 use crate::helpers::general::{ai_task_request_decoded, check_status_code};
 use crate::models::agent_basic::basic_agent::{AgentState, BasicAgent};
-use crate::models::agent_basic::basic_traits::BasicTrait;
+use crate::models::agent_basic::basic_traits::BasicTraits;
 use crate::models::agents::agent_traits::{FactSheet, ProjectScope, SpecialFunctions};
 use async_trait::async_trait;
 use reqwest::Client;
@@ -14,26 +14,28 @@ use std::time::Duration;
 // Формирования области проекта (Project Scope).
 // Определения внешних ссылок, относящихся к проекту.
 
+// Solutions Architect
 #[derive(Debug)]
 pub struct AgentSolutionArchitect {
     attributes: BasicAgent,
 }
 
 impl AgentSolutionArchitect {
-    pub fn new() -> AgentSolutionArchitect {
-        let attributes = BasicAgent {
-            objective: "Gathers information and design solution for development".to_string(),
-            position: "Solution Architect".to_string(),
+    pub fn new() -> Self {
+        let attributes: BasicAgent = BasicAgent {
+            objective: "Gathers information and design solutions for website development"
+                .to_string(),
+            position: "Solutions Architect".to_string(),
             state: AgentState::Discovery,
             memory: vec![],
         };
+
         Self { attributes }
     }
 
     // Retrieve Project Scope
-    async fn call_project_scope(&mut self, fact_sheet: &mut FactSheet) -> ProjectScope {
-        //Формирует контекст сообщения из описания проекта (fact_sheet.project_description).
-        let msg_context: String = format!("{:?}", fact_sheet.project_description);
+    async fn call_project_scope(&mut self, factsheet: &mut FactSheet) -> ProjectScope {
+        let msg_context: String = format!("{}", factsheet.project_description);
 
         let ai_response: ProjectScope = ai_task_request_decoded::<ProjectScope>(
             msg_context,
@@ -42,17 +44,18 @@ impl AgentSolutionArchitect {
             print_project_scope,
         )
         .await;
-        fact_sheet.project_scope = Some(ai_response.clone());
+
+        factsheet.project_scope = Some(ai_response.clone());
         self.attributes.update_state(AgentState::Finished);
-        ai_response
+        return ai_response;
     }
-    // Retrieve Project external links
-    async fn call_determine_external_link(
+
+    // Retrieve Project Scope
+    async fn call_determine_external_urls(
         &mut self,
-        fact_sheet: &mut FactSheet,
+        factsheet: &mut FactSheet,
         msg_context: String,
     ) {
-        //Использует ai_task_request_decoded для получения внешних ссылок проекта с помощью функции print_site_urls.
         let ai_response: Vec<String> = ai_task_request_decoded::<Vec<String>>(
             msg_context,
             &self.attributes.position,
@@ -60,8 +63,9 @@ impl AgentSolutionArchitect {
             print_site_urls,
         )
         .await;
-        fact_sheet.external_urls = Some(ai_response);
-        self.attributes.update_state(AgentState::UnitTesting);
+
+        factsheet.external_urls = Some(ai_response);
+        self.attributes.state = AgentState::UnitTesting;
     }
 }
 
@@ -70,55 +74,64 @@ impl SpecialFunctions for AgentSolutionArchitect {
     fn get_attributes_from_agent(&self) -> &BasicAgent {
         &self.attributes
     }
-    async fn execute(&mut self, fact_sheet: &mut FactSheet) -> Result<(), Box<dyn Error>> {
-        // Warning - infinity loop!
+
+    async fn execute(
+        &mut self,
+        factsheet: &mut FactSheet,
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        // !!! WARNING - BE CAREFUL OF INFINITATE LOOPS !!!
         while self.attributes.state != AgentState::Finished {
             match self.attributes.state {
                 AgentState::Discovery => {
-                    let project_scope: ProjectScope = self.call_project_scope(fact_sheet).await;
-                    // confirm is external links
+                    let project_scope: ProjectScope = self.call_project_scope(factsheet).await;
+
+                    // Confirm if external urls
                     if project_scope.is_external_urls_required {
-                        self.call_determine_external_link(
-                            fact_sheet,
-                            fact_sheet.project_description.clone(),
+                        self.call_determine_external_urls(
+                            factsheet,
+                            factsheet.project_description.clone(),
                         )
                         .await;
                         self.attributes.state = AgentState::UnitTesting;
                     }
                 }
+
                 AgentState::UnitTesting => {
                     let mut exclude_urls: Vec<String> = vec![];
-                    let client: Client =
-                        Client::builder().timeout(Duration::from_secs(5)).build()?;
 
-                    // fin broken urls
-                    let urls: &Vec<String> = fact_sheet
+                    let client: Client = Client::builder()
+                        .timeout(Duration::from_secs(5))
+                        .build()
+                        .unwrap();
+
+                    // Defining urls to check
+                    let urls: &Vec<String> = factsheet
                         .external_urls
                         .as_ref()
-                        .expect("No URL object in fact_sheet");
+                        .expect("No URL object on factsheet");
 
+                    // Find faulty urls
                     for url in urls {
-                        let endpoint_str: String = format!("Testing URL endpoint: {}", url);
+                        let endpoint_str: String = format!("Testing URL Endpoint: {}", url);
                         PrintCommand::UnitTest.print_agent_message(
                             self.attributes.position.as_str(),
                             endpoint_str.as_str(),
                         );
 
-                        // perform url Test
+                        // Perform URL Test
                         match check_status_code(&client, url).await {
                             Ok(status_code) => {
                                 if status_code != 200 {
-                                    exclude_urls.push(url.clone());
+                                    exclude_urls.push(url.clone())
                                 }
                             }
-                            Err(_) => {
-                                exclude_urls.push(url.clone());
-                                println!("Error while checking URL: {}", url);
-                            }
+                            Err(e) => println!("Error checking {}: {}", url, e),
                         }
                     }
+
+                    // Exclude any faulty urls
                     if exclude_urls.len() > 0 {
-                        let new_urls: Vec<String> = fact_sheet
+                        let new_urls: Vec<String> = factsheet
                             .external_urls
                             .as_ref()
                             .unwrap()
@@ -126,17 +139,20 @@ impl SpecialFunctions for AgentSolutionArchitect {
                             .filter(|url| !exclude_urls.contains(&url))
                             .cloned()
                             .collect();
-                        fact_sheet.external_urls = Some(new_urls);
+                        factsheet.external_urls = Some(new_urls);
                     }
-                    // confirm Done
-                    self.attributes.update_state(AgentState::Finished);
+
+                    // Confirm done
+                    self.attributes.state = AgentState::Finished;
                 }
-                // Default to finished state
+
+                // Default to Finished state
                 _ => {
                     self.attributes.state = AgentState::Finished;
                 }
             }
         }
+
         Ok(())
     }
 }
@@ -149,8 +165,8 @@ mod tests {
     async fn tests_solution_architect() {
         let mut agent: AgentSolutionArchitect = AgentSolutionArchitect::new();
 
-        let mut fact_sheet: FactSheet = FactSheet {
-            project_description: "Build a full stack crud website with user login and logout that shows latest Forex prices".to_string(),
+        let mut factsheet: FactSheet = FactSheet {
+            project_description: "Build a full stack website with user login and logout that shows latest Forex prices".to_string(),
             project_scope: None,
             external_urls: None,
             backend_code: None,
@@ -158,11 +174,12 @@ mod tests {
         };
 
         agent
-            .execute(&mut fact_sheet)
+            .execute(&mut factsheet)
             .await
             .expect("Unable to execute Solutions Architect Agent");
-        assert_ne!(fact_sheet.project_scope, None);
-        assert!(fact_sheet.external_urls.is_some());
-        dbg!(fact_sheet);
+        assert!(factsheet.project_scope != None);
+        assert!(factsheet.external_urls.is_some());
+
+        dbg!(factsheet);
     }
 }

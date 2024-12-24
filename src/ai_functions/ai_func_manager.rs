@@ -1,6 +1,6 @@
-use auto_gpt_agent::function_to_string as ai;
+use auto_gpt_agent::function_to_string as ai_function;
 
-#[ai]
+#[ai_function]
 pub fn convert_user_input_to_goal(_user_request: &str) {
     /// Input: Takes in a user request
     /// Function: Converts user request into a short summarized goal

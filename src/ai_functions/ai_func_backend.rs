@@ -1,7 +1,7 @@
-use auto_gpt_agent::function_to_string as ai;
+use auto_gpt_agent::function_to_string as ai_function;
 
-#[ai]
-pub fn print_backend_webserver_code(_project_description: &str) {
+#[ai_function]
+pub fn print_backend_webserver_code(_project_description_and_template: &str) {
     /// INPUT: Takes in a PROJECT_DESCRIPTION and CODE_TEMPLATE for a website backend build
     /// IMPORTANT: The backend code is ONLY an example. If the Project Description requires it, make as many changes as you like.
     /// IMPORTANT: You do not need to follow the backend code exactly. Write functions that make sense for the users request if required.
@@ -10,11 +10,11 @@ pub fn print_backend_webserver_code(_project_description: &str) {
     ///   reqwest, serde, serde_json, tokio, actix-web, async-trait, actix_cors
     /// No other external libraries should be used. Write functions that fit with the description from the PROJECT_DESCRIPTION
     /// OUTPUT: Print ONLY the code, nothing else. This function ONLY prints code.
-    println!(OUTPUT);
+    println!(OUTPUT)
 }
 
-#[ai]
-pub fn print_improved_webserver_code(_project_description: &str) {
+#[ai_function]
+pub fn print_improved_webserver_code(_project_description_and_template: &str) {
     /// INPUT: Takes in a PROJECT_DESCRIPTION and CODE_TEMPLATE for a website backend build
     /// FUNCTION: Performs the following tasks:
     ///   1. Removes any bugs in the code and adds minor additional functionality
@@ -22,20 +22,19 @@ pub fn print_improved_webserver_code(_project_description: &str) {
     ///   3. ONLY writes the code. No commentary.
     /// IMPORTANT: The following libraries are already installed. Does not use ANY libraries other than what was provided in the template
     ///   reqwest, serde, serde_json, tokio, actix-web, async-trait
-
-    println!(OUTPUT);
+    println!(OUTPUT)
 }
 
-#[ai]
-pub fn print_fixed_code(_project_description: &str) {
+#[ai_function]
+pub fn print_fixed_code(_broken_code_with_bugs: &str) {
     /// INPUT: Takes in Rust BROKEN_CODE and the ERROR_BUGS found
     /// FUNCTION: Removes bugs from code
     /// IMPORTANT: Only prints out the new and improved code. No commentary or anything else
-    println!(OUTPUT);
+    println!(OUTPUT)
 }
 
-#[ai]
-pub fn print_rest_api_endpoints(_project_description: &str) {
+#[ai_function]
+pub fn print_rest_api_endpoints(_code_input: &str) {
     /// INPUT: Takes in Rust webserver CODE_INPUT based on actix-web
     /// FUNCTION: Prints out the JSON schema for url endpoints and their respective types
     /// LOGIC: Script analyses all code and can categorize into the following object keys:
@@ -109,5 +108,5 @@ pub fn print_rest_api_endpoints(_project_description: &str) {
     ///   },
     ///   ... // etc
     /// ]
-    println!(OUTPUT);
+    println!(OUTPUT)
 }

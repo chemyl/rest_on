@@ -3,24 +3,23 @@ use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
 
-#[derive(Serialize, Deserialize, Debug, PartialEq, Copy, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
+pub struct RouteObject {
+    pub is_route_dynamic: String,
+    pub method: String,
+    pub request_body: serde_json::Value,
+    pub response: serde_json::Value,
+    pub route: String,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone, Copy, PartialEq)]
 pub struct ProjectScope {
     pub is_crud_required: bool,
     pub is_user_login_and_logout: bool,
     pub is_external_urls_required: bool,
 }
 
-#[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
-pub struct RouteObject {
-    pub is_route_dynamic: String,
-    pub method: String,
-    pub request_body: serde_json::Value,
-    pub response_body: serde_json::Value,
-    pub route_id: String,
-}
-
-// структура данных, хранящая факты, которые обрабатываются как менеджером, так и агентами (определена в модуле agent_traits).
-#[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct FactSheet {
     pub project_description: String,
     pub project_scope: Option<ProjectScope>,
@@ -30,14 +29,13 @@ pub struct FactSheet {
 }
 
 #[async_trait]
-//SpecialFunctions — задаёт интерфейс взаимодействия между менеджером и агентами.
 pub trait SpecialFunctions: Debug {
-    // Метод Возвращает ссылку на базовый агент (BasicAgent), представляющий атрибуты агента.
+    // Used to that manager can get attributes from Agents
     fn get_attributes_from_agent(&self) -> &BasicAgent;
 
-    // Асинхронная функция, принимающая на вход структуру FactSheet и выполняющая какую-то логику. Возвращает Result:
+    // This function will allow agents to execute their logic
     async fn execute(
         &mut self,
-        fact_sheet: &mut FactSheet,
+        factsheet: &mut FactSheet,
     ) -> Result<(), Box<dyn std::error::Error>>;
 }
