@@ -7,7 +7,7 @@ use crate::helpers::general::{
     save_backend_code,
 };
 
-use crate::helpers::command_lines::PrintCommand;
+use crate::helpers::command_lines::{PrintCommand, confirm_safe_code};
 use crate::helpers::general::ai_task_request;
 use crate::models::agent_basic::basic_agent::{AgentState, BasicAgent};
 use crate::models::agents::agent_traits::{FactSheet, RouteObject, SpecialFunctions};
@@ -159,7 +159,19 @@ impl SpecialFunctions for AgentBackendDeveloper {
                     continue;
                 }
 
-                AgentState::UnitTesting => {}
+                AgentState::UnitTesting => {
+                    // GUard
+                    PrintCommand::UnitTest.print_agent_message(
+                        &self.attributes.position.as_str(),"Backend Code Unit Testing: Ensuring Safe Code");
+                    self.attributes.state = AgentState::Finished;
+
+                    let user_confirmation = confirm_safe_code();
+                    match user_confirmation {
+                        false => panic!("Better go work on some AI alignment instead..."),
+                        true => {}
+                    }
+
+                }
 
                 _ => {}
             }
