@@ -40,7 +40,7 @@ pub async fn ai_task_request(
 ) -> String {
     // Extend AI function
     let extended_msg: Message = extend_ai_function(function_pass, &msg_context);
-
+    println!("* ==============EXTENDED MESSAGE: {:?}",extended_msg.clone());
     // Print current status
     PrintCommand::AICall.print_agent_message(agent_position, agent_operation);
 

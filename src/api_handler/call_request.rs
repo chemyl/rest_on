@@ -40,6 +40,8 @@ pub async fn call_gpt(messages: Vec<Message>) -> Result<String, Box<dyn std::err
         .build()
         .map_err(|e| -> Box<dyn std::error::Error + Send> { Box::new(e) })?;
 
+
+    println!("* ==============MESSAGE TO CALL GPT: {:?}", messages.clone());
     // Create chat completion
     let chat_completion: ChatCompletion = ChatCompletion {
         model: "gpt-4".to_string(),
@@ -47,15 +49,6 @@ pub async fn call_gpt(messages: Vec<Message>) -> Result<String, Box<dyn std::err
         messages,
         temperature: 0.1,
     };
-
-    // // Troubleshooting
-    // let res_raw = client
-    //   .post(url)
-    //   .json(&chat_completion)
-    //   .send()
-    //   .await
-    //   .unwrap();
-    // dbg!(res_raw.text().await.unwrap());
 
     // Extract API Response
     let res: APIResponse = client
@@ -67,7 +60,7 @@ pub async fn call_gpt(messages: Vec<Message>) -> Result<String, Box<dyn std::err
         .json()
         .await
         .map_err(|e| -> Box<dyn std::error::Error + Send> { Box::new(e) })?;
-
+    println!("* ==============MESSAGE RESULT FROM GPT: {:?}", res.choices[0].message.content.clone());
     // Send Response
     Ok(res.choices[0].message.content.clone())
 }
