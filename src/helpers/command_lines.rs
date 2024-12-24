@@ -50,6 +50,43 @@ pub fn get_user_response(question: &str) -> String {
     return user_response.trim().to_string();
 }
 
+// get user confirmation of code safety
+pub fn confirm_safe_code() -> bool {
+    let mut stdout: std::io::Stdout = stdout();
+    loop {
+        // print questions
+        stdout.execute(SetForegroundColor(Color::Blue)).unwrap();
+        println!();
+        println!("WARNING: You are about to run code written entirely by AI.");
+        println!("REVIEW CODE and confirm you wish to continue.");
+        stdout.execute(ResetColor).unwrap();
+
+        // options with different colors
+        stdout.execute(SetForegroundColor(Color::Green)).unwrap();
+        println!("[1] All Good");
+        stdout.execute(SetForegroundColor(Color::Red)).unwrap();
+        println!("[2] Stop project");
+        stdout.execute(ResetColor).unwrap();
+
+
+        //read use input
+        let mut human_input = String::new();
+        stdin().read_line(&mut human_input).expect("Failed to read user confirmation");
+
+        // trim and make lowercase
+        let human_response = human_input.trim().to_lowercase();
+
+        //match human response
+        match human_response.as_str() {
+            "1" | "ok" | "y" => return true,
+            "2" | "no" | "n" => return false,
+            _ => {
+              println!("Invalid input. Please select one of the following");
+            }
+        };
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
