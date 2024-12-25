@@ -5,10 +5,9 @@ use reqwest::Client;
 use serde::de::DeserializeOwned;
 use std::fs;
 
-// const WEB_SERVER_CODE_TEMPLATE_PATH: &str = "/Users/Anatolii Maltsev/Documents/Coding/Rust/Projects/RustAgent/web_template/src/web_server_code_template.rs";
 const CODE_TEMPLATE_PATH: &str = r#"C:\Users\Anatolii Maltsev\Documents\Coding\Rust\Projects\RustAgent\web_template\src\web_server_code_template.rs"#;
-// const EXECUTE_MAIN_PATH: &str = "/Users/Anatolii Maltsev/Documents/Coding/Rust/Projects/RustAgent/web_template/src/main.rs";
 const EXEC_MAIN_PATH: &str = r#"C:\Users\Anatolii Maltsev\Documents\Coding\Rust\Projects\RustAgent\web_template\src\main.rs"#;
+pub const WEB_SERVER_PROJECT_PATH: &str =  r#"C:\Users\Anatolii Maltsev\Documents\Coding\Rust\Projects\RustAgent\web_template\"#;
 const API_SCHEMA_PATH: &str = "/Users/Anatolii Maltsev/Documents/Coding/Rust/Projects/RustAgent/auto_gpt_agent/schemas/api_schema.json>";
 
 // Extend ai function to encourage specific output

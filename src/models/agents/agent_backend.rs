@@ -1,3 +1,4 @@
+use std::io::{stdout, Stdout};
 use crate::ai_functions::ai_func_backend::{
     print_backend_webserver_code, print_fixed_code, print_improved_webserver_code,
     print_rest_api_endpoints,
@@ -8,7 +9,7 @@ use crate::helpers::general::{
 };
 
 use crate::helpers::command_lines::{PrintCommand, confirm_safe_code};
-use crate::helpers::general::ai_task_request;
+use crate::helpers::general::{ai_task_request,WEB_SERVER_PROJECT_PATH};
 use crate::models::agent_basic::basic_agent::{AgentState, BasicAgent};
 use crate::models::agents::agent_traits::{FactSheet, RouteObject, SpecialFunctions};
 
@@ -16,6 +17,7 @@ use async_trait::async_trait;
 use reqwest::Client;
 use std::process::{Command, Stdio};
 use std::time::Duration;
+use syn::token::Comma;
 use tokio::time;
 
 #[derive(Debug)]
@@ -160,17 +162,52 @@ impl SpecialFunctions for AgentBackendDeveloper {
                 }
 
                 AgentState::UnitTesting => {
-                    // GUard
+                    // API SAFETY GUARD
                     PrintCommand::UnitTest.print_agent_message(
                         &self.attributes.position.as_str(),"Backend Code Unit Testing: Ensuring Safe Code");
-                    self.attributes.state = AgentState::Finished;
 
                     let user_confirmation = confirm_safe_code();
-                    match user_confirmation {
-                        false => panic!("Better go work on some AI alignment instead..."),
-                        true => {}
+
+                    if !user_confirmation {
+                        panic!("Better go work on some AI alignment instead...");
                     }
 
+                    // Build and testing code
+                    PrintCommand::UnitTest.print_agent_message(
+                        &self.attributes.position.as_str(),"Backend Code Unit Testing: building web server...");
+
+                    let build_backend_server: std::process::Output = Command::new("cargo")
+                        .arg("build")
+                        .current_dir(WEB_SERVER_PROJECT_PATH)
+                        .stdout(Stdio::piped())
+                        .stderr(Stdio::piped())
+                        .output()
+                        .expect("Failed to run backend application");
+
+                    // determine errors
+                    if build_backend_server.status.success(){
+                        self.bug_count = 0;
+                        PrintCommand::UnitTest.print_agent_message(
+                            &self.attributes.position.as_str(),"Backend Code Unit Testing: Test server build successful...");
+                    } else {
+                        let error_arr:Vec<u8> = build_backend_server.stderr;
+                        let error_str = String::from_utf8(error_arr).unwrap();
+                        //update error count
+                        self.bug_count +=1;
+                        self.bug_errors = Some(error_str);
+
+                        if self.bug_count >2 {
+                            PrintCommand::Issue.print_agent_message(
+                                &self.attributes.position.as_str(), "Backend Code Unit Testing: Too many bugs found in code ");
+                            panic!("ERROR: Too many bugs");
+                        }
+
+                        // Pass back to work
+                        self.attributes.state = AgentState::Working;
+                        continue
+                    }
+
+                    self.attributes.state = AgentState::Finished;
                 }
 
                 _ => {}
