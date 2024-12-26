@@ -138,10 +138,7 @@ impl SpecialFunctions for AgentBackendDeveloper {
         &self.attributes
     }
 
-    async fn execute(
-        &mut self,
-        fact_sheet: &mut FactSheet,
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    async fn execute(&mut self, fact_sheet: &mut FactSheet ) -> Result<(), Box<dyn std::error::Error>> {
         while self.attributes.state != AgentState::Finished {
             match &self.attributes.state {
                 AgentState::Discovery => {
@@ -173,7 +170,7 @@ impl SpecialFunctions for AgentBackendDeveloper {
 
                     // Build and testing code
                     PrintCommand::UnitTest.print_agent_message(
-                        &self.attributes.position.as_str(), "Backend Code Unit Testing: building web server...");
+                        &self.attributes.position.as_str(), "Backend Code Unit Testing: Building web server...");
 
                     let build_backend_server: std::process::Output = Command::new("cargo")
                         .arg("build")
@@ -219,9 +216,7 @@ impl SpecialFunctions for AgentBackendDeveloper {
 
                     // define endpoints checks. Выбрать в итераторе только проверяемые ендпоинты
                     let check_endpoints: Vec<RouteObject> = api_endpoints.iter()
-                        .filter(|&route_object: &RouteObject| {
-                            route_object.method == "get" && route_object.is_route_dynamic == "false"
-                        })
+                        .filter(|&route_object| { route_object.method == "get" && route_object.is_route_dynamic == "false" })
                         .cloned().collect();
 
                     // Store API endpoints
@@ -260,7 +255,7 @@ impl SpecialFunctions for AgentBackendDeveloper {
                             .build().unwrap();
 
                         // test url
-                        let url: String = format!("http://localhos:8080{}", endpoint.route);
+                        let url: String = format!("http://127.0.0.1:8080{}", endpoint.route);
                         match check_status_code(&client, &url).await {
                             Ok(status_code) => {
                                 if status_code != 200 {
@@ -280,7 +275,7 @@ impl SpecialFunctions for AgentBackendDeveloper {
                     }
 
                     save_api_endpoints(&api_endpoints_str);
-                    PrintCommand::Issue.print_agent_message(
+                    PrintCommand::Success.print_agent_message(
                         &self.attributes.position.as_str(), "Backend Testing completed...");
 
                     run_backend_server.kill().expect("failed to Kill server on completion");
@@ -319,7 +314,8 @@ mod tests {
 
         let mut factsheet: FactSheet = serde_json::from_str(factsheet_str).unwrap();
 
-        agent.attributes.state = AgentState::Discovery;
+        // agent.attributes.state = AgentState::Discovery;
+        agent.attributes.state = AgentState::UnitTesting;
         agent
             .execute(&mut factsheet)
             .await
