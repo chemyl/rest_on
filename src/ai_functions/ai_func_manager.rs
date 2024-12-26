@@ -1,4 +1,4 @@
-use auto_gpt_agent::function_to_string as ai_function;
+use ai_functions::ai_function;
 
 #[ai_function]
 pub fn convert_user_input_to_goal(_user_request: &str) {

@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":["convert_user_input_to_goal"]};

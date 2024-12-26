@@ -1,4 +1,4 @@
-use auto_gpt_agent::function_to_string as ai_function;
+use ai_functions::ai_function;
 
 #[ai_function]
 pub fn print_backend_webserver_code(_project_description_and_template: &str) {

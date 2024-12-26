@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"constant":["API_SCHEMA_PATH","CODE_TEMPLATE_PATH","EXEC_MAIN_PATH","WEB_SERVER_PROJECT_PATH"],"fn":["ai_task_request","ai_task_request_decoded","check_status_code","extend_ai_function","read_code_template_contents","read_exec_main_contents","save_api_endpoints","save_backend_code"]};
