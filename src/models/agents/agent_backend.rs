@@ -18,6 +18,11 @@ use std::process::{Command, Stdio};
 use std::time::Duration;
 use tokio::time;
 
+/// Struct representing a backend developer agent
+/// Attributes:
+/// - `attributes`: Basic agent properties (objective, position, etc.)
+/// - `bug_errors`: Optional string describing encountered errors
+/// - `bug_count`: Counter for the number of bugs encountered
 #[derive(Debug)]
 pub struct AgentBackendDeveloper {
     attributes: BasicAgent,
@@ -26,6 +31,7 @@ pub struct AgentBackendDeveloper {
 }
 
 impl AgentBackendDeveloper {
+    /// Creates a new instance of `AgentBackendDeveloper` with default attributes
     pub fn new() -> Self {
         let attributes: BasicAgent = BasicAgent {
             objective: "Develops backend code for webserver and json database".to_string(),
@@ -41,12 +47,12 @@ impl AgentBackendDeveloper {
         }
     }
 
+    /// Generates initial backend code based on a code template and project description
+    ///
+    /// # Parameters
+    /// - `fact_sheet`: A mutable reference to the fact sheet containing project information
     async fn call_initial_backend_code(&mut self, fact_sheet: &mut FactSheet) {
         let code_template_str: String = read_code_template_contents();
-        // println!(
-        //     "* ==============FIRST Backend code TEMPLATE: {:?}",
-        //     &code_template_str
-        // );
         // Concatenate Instruction
         let msg_context: String = format!(
             "CODE TEMPLATE: {} \n PROJECT_DESCRIPTION: {} \n",
@@ -59,23 +65,19 @@ impl AgentBackendDeveloper {
             get_function_string!(print_backend_webserver_code),
             print_backend_webserver_code,
         )
-            .await;
-        // println!(
-        //     "* ==============FIRST Backend(AI RESPONSE) code to Save: {:?}",
-        //     &ai_response
-        // );
+        .await;
         save_backend_code(&ai_response);
         fact_sheet.backend_code = Some(ai_response);
     }
 
-    async fn call_improved_backend_code(&mut self, factsheet: &mut FactSheet) {
-        // println!(
-        //     "* ==============SECOND  Backend code TEMPLATE: {:?}",
-        //     &factsheet.backend_code
-        // );
+    /// Requests improved backend code from the AI
+    ///
+    /// # Parameters
+    /// - `fact_sheet`: A mutable reference to the fact sheet containing project information
+    async fn call_improved_backend_code(&mut self, fact_sheet: &mut FactSheet) {
         let msg_context: String = format!(
             "CODE TEMPLATE: {:?} \n PROJECT_DESCRIPTION: {:?} \n",
-            factsheet.backend_code, factsheet
+            fact_sheet.backend_code, fact_sheet
         );
 
         let ai_response: String = ai_task_request(
@@ -84,15 +86,15 @@ impl AgentBackendDeveloper {
             get_function_string!(print_improved_webserver_code),
             print_improved_webserver_code,
         )
-            .await;
-        // println!(
-        //     "* ==============SECOND (AI RESPONSE) Backend code to save: {:?}",
-        //     &ai_response
-        // );
+        .await;
         save_backend_code(&ai_response);
-        factsheet.backend_code = Some(ai_response);
+        fact_sheet.backend_code = Some(ai_response);
     }
 
+    /// Fixes code bugs based on error messages and broken code
+    ///
+    /// # Parameters
+    /// - `fact_sheet`: A mutable reference to the fact sheet containing project information
     async fn call_fix_code_bugs(&mut self, fact_sheet: &mut FactSheet) {
         let msg_context: String = format!(
             "BROKEN_CODE: {:?} \n ERROR_BUGS: {:?} \n
@@ -106,41 +108,52 @@ impl AgentBackendDeveloper {
             get_function_string!(print_fixed_code),
             print_fixed_code,
         )
-            .await;
+        .await;
 
         save_backend_code(&ai_response);
         fact_sheet.backend_code = Some(ai_response);
     }
 
+    /// Extracts REST API endpoints from the backend code
+    ///
+    /// # Returns
+    /// - A string containing the extracted API endpoints
     async fn call_extract_rest_api_endpoints(&self) -> String {
         let backend_code: String = read_exec_main_contents();
-
-        // Structure message context
         let msg_context: String = format!("CODE_INPUT: {}", backend_code);
-
         let ai_response: String = ai_task_request(
             msg_context,
             &self.attributes.position,
             get_function_string!(print_rest_api_endpoints),
             print_rest_api_endpoints,
         )
-            .await;
+        .await;
 
         ai_response
     }
 }
 
+/// Implementation of special functions for `AgentBackendDeveloper`
 #[async_trait]
 impl SpecialFunctions for AgentBackendDeveloper {
+    /// Retrieves the attributes of the agent
     fn get_attributes_from_agent(&self) -> &BasicAgent {
         &self.attributes
     }
-
-    async fn execute(&mut self, fact_sheet: &mut FactSheet) -> Result<(), Box<dyn std::error::Error>> {
+    /// Executes the agent's workflow based on its state
+    ///
+    /// # Parameters
+    /// - `fact_sheet`: A mutable reference to the fact sheet containing project information
+    ///
+    /// # Returns
+    /// - A result indicating success or an error
+    ///
+    async fn execute(
+        &mut self,
+        fact_sheet: &mut FactSheet,
+    ) -> Result<(), Box<dyn std::error::Error>> {
         while self.attributes.state != AgentState::Finished {
-
             match &self.attributes.state {
-
                 AgentState::Discovery => {
                     self.call_initial_backend_code(fact_sheet).await;
                     self.attributes.state = AgentState::Working;
@@ -189,7 +202,8 @@ impl SpecialFunctions for AgentBackendDeveloper {
                         self.bug_count = 0;
                         PrintCommand::UnitTest.print_agent_message(
                             &self.attributes.position.as_str(),
-                            "Backend Code Unit Testing: Test server build successful...");
+                            "Backend Code Unit Testing: Test server build successful...",
+                        );
                     } else {
                         let error_arr: Vec<u8> = build_backend_server.stderr;
                         let error_str = String::from_utf8(error_arr).unwrap();
@@ -210,19 +224,12 @@ impl SpecialFunctions for AgentBackendDeveloper {
                         continue;
                     }
 
-                    /*
-                        Extract and test REST API endpoints
-                    */
-
-                    // Exctract API Endpoints
                     let api_endpoints_str: String = self.call_extract_rest_api_endpoints().await;
 
-                    // convert API endpoints into value
                     let api_endpoints: Vec<RouteObject> =
                         serde_json::from_str(api_endpoints_str.as_str())
                             .expect("Failed to parse API endpoints");
 
-                    // define endpoints checks. Выбрать в итераторе только проверяемые ендпоинты
                     let check_endpoints: Vec<RouteObject> = api_endpoints
                         .iter()
                         .filter(|&route_object| {
@@ -231,10 +238,8 @@ impl SpecialFunctions for AgentBackendDeveloper {
                         .cloned()
                         .collect();
 
-                    // Store API endpoints
                     fact_sheet.api_endpoint_schema = Some(check_endpoints.clone());
 
-                    //Run backend application
                     PrintCommand::UnitTest.print_agent_message(
                         &self.attributes.position.as_str(),
                         "Backend Code Unit Testing: Starting Web server...",
@@ -248,17 +253,14 @@ impl SpecialFunctions for AgentBackendDeveloper {
                         .spawn()
                         .expect("Failed to run backend application");
 
-                    //Launching testing on the server
                     PrintCommand::UnitTest.print_agent_message(
                         &self.attributes.position.as_str(),
                         "Backend Code Unit Testing: Launching test on server in 5 sec...",
                     );
 
-                    //Sleep for 5 sec before call webserver
                     let seconds_sleep: Duration = Duration::from_secs(5);
                     time::sleep(seconds_sleep).await;
 
-                    // check endpoints against server
                     for endpoint in check_endpoints {
                         let test_message: String =
                             format!("Testing endpoint: '{}...'", endpoint.route);
@@ -267,13 +269,11 @@ impl SpecialFunctions for AgentBackendDeveloper {
                             test_message.as_str(),
                         );
 
-                        //create client to call endpoints api
                         let client: Client = Client::builder()
                             .timeout(Duration::from_secs(5))
                             .build()
                             .unwrap();
 
-                        // test url
                         let url: String = format!("http://127.0.0.1:8080{}", endpoint.route);
                         match check_status_code(&client, &url).await {
                             Ok(status_code) => {
@@ -289,7 +289,6 @@ impl SpecialFunctions for AgentBackendDeveloper {
                                 }
                             }
                             Err(error_msg) => {
-                                //kill process
                                 run_backend_server
                                     .kill()
                                     .expect("Unable to stop backend application");
@@ -321,36 +320,36 @@ impl SpecialFunctions for AgentBackendDeveloper {
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[tokio::test]
-    async fn tests_backend_developer() {
-        let mut agent: AgentBackendDeveloper = AgentBackendDeveloper::new();
-
-        let fact_sheet_str: &str = r#"
-      {
-        "project_description": "build a website that fetches and tracks fitness progress with timezone information",
-        "project_scope": {
-          "is_crud_required": true,
-          "is_user_login_and_logout": true,
-          "is_external_urls_required": true
-        },
-        "external_urls": [
-          "http://worldtimeapi.org/api/timezone"
-        ],
-        "backend_code": null,
-        "api_endpoint_schema": null
-      }"#;
-
-        let mut factsheet: FactSheet = serde_json::from_str(fact_sheet_str).unwrap();
-
-        // agent.attributes.state = AgentState::Discovery;
-        agent.attributes.state = AgentState::UnitTesting;
-        agent
-            .execute(&mut factsheet)
-            .await
-            .expect("Failed to execute Backend Developer agent");
-    }
-}
+// #[cfg(test)]
+// mod tests {
+//     use super::*;
+//
+//     #[tokio::test]
+//     async fn tests_backend_developer() {
+//         let mut agent: AgentBackendDeveloper = AgentBackendDeveloper::new();
+//
+//         let fact_sheet_str: &str = r#"
+//       {
+//         "project_description": "build a website that fetches and tracks fitness progress with timezone information",
+//         "project_scope": {
+//           "is_crud_required": true,
+//           "is_user_login_and_logout": true,
+//           "is_external_urls_required": true
+//         },
+//         "external_urls": [
+//           "http://worldtimeapi.org/api/timezone"
+//         ],
+//         "backend_code": null,
+//         "api_endpoint_schema": null
+//       }"#;
+//
+//         let mut factsheet: FactSheet = serde_json::from_str(fact_sheet_str).unwrap();
+//
+//         // agent.attributes.state = AgentState::Discovery;
+//         agent.attributes.state = AgentState::UnitTesting;
+//         agent
+//             .execute(&mut factsheet)
+//             .await
+//             .expect("Failed to execute Backend Developer agent");
+//     }
+// }

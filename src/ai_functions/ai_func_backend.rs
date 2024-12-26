@@ -22,6 +22,7 @@ pub fn print_improved_webserver_code(_project_description_and_template: &str) {
     ///   3. ONLY writes the code. No commentary.
     /// IMPORTANT: The following libraries are already installed. Does not use ANY libraries other than what was provided in the template
     ///   reqwest, serde, serde_json, tokio, actix-web, async-trait
+    /// OUTPUT: Print ONLY the code, nothing else. This function ONLY prints code.
     println!(OUTPUT)
 }
 

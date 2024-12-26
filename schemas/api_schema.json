@@ -1,19 +1,17 @@
 [
   {
-    "route": "/news",
+    "route": "/book",
     "is_route_dynamic": "false",
     "method": "post",
     "request_body": {
       "id": "number",
       "title": "string",
-      "content": "string",
-      "country": "string",
-      "viral": "bool"
+      "pages_read": "number"
     },
     "response": "None"
   },
   {
-    "route": "/news",
+    "route": "/book",
     "is_route_dynamic": "false",
     "method": "get",
     "request_body": "None",
@@ -21,58 +19,59 @@
       {
         "id": "number",
         "title": "string",
-        "content": "string",
-        "country": "string",
-        "viral": "bool"
+        "pages_read": "number"
       }
     ]
   },
   {
-    "route": "/news",
+    "route": "/book",
     "is_route_dynamic": "false",
     "method": "put",
     "request_body": {
       "id": "number",
       "title": "string",
-      "content": "string",
-      "country": "string",
-      "viral": "bool"
+      "pages_read": "number"
     },
     "response": "None"
   },
   {
-    "route": "/news/{id}",
+    "route": "/book/{id}",
     "is_route_dynamic": "true",
     "method": "get",
     "request_body": "None",
     "response": {
       "id": "number",
       "title": "string",
-      "content": "string",
-      "country": "string",
-      "viral": "bool"
+      "pages_read": "number"
     }
   },
   {
-    "route": "/news/{id}",
+    "route": "/book/{id}",
     "is_route_dynamic": "true",
     "method": "delete",
     "request_body": "None",
     "response": "None"
   },
   {
-    "route": "/viral/{country}",
-    "is_route_dynamic": "true",
-    "method": "get",
-    "request_body": "None",
-    "response": [
-      {
-        "id": "number",
-        "title": "string",
-        "content": "string",
-        "country": "string",
-        "viral": "bool"
-      }
-    ]
+    "route": "/register",
+    "is_route_dynamic": "false",
+    "method": "post",
+    "request_body": {
+      "id": "number",
+      "user_name": "string",
+      "user_password": "string"
+    },
+    "response": "None"
+  },
+  {
+    "route": "/login",
+    "is_route_dynamic": "false",
+    "method": "post",
+    "request_body": {
+      "id": "number",
+      "user_name": "string",
+      "user_password": "string"
+    },
+    "response": "None"
   }
 ]

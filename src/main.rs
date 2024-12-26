@@ -6,10 +6,10 @@ macro_rules! get_function_string {
 }
 
 #[macro_use]
-mod ai_functions;
-mod api_handler;
-mod helpers;
-mod models;
+pub mod ai_functions;
+pub mod api_handler;
+pub mod helpers;
+pub mod models;
 
 use crate::helpers::command_lines::get_user_response;
 use models::agents_manager::managing_agents::ManagingAgent;

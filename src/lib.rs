@@ -4,8 +4,14 @@ use proc_macro::TokenStream;
 use quote::{quote, ToTokens};
 use syn::{parse_macro_input, ItemFn};
 
-// Его задача — взять функцию, помеченную атрибутом #[function_to_string],
-// и сгенерировать новую функцию, которая возвращает текстовое представление исходной функции.
+/// A procedural macro attribute to convert a function's definition into a static string.
+///
+/// # Parameters
+/// - `_attr`: Attributes passed to the macro (currently unused).
+/// - `item`: The function to which the macro is applied.
+///
+/// # Functionality
+/// This macro generates a new function that returns the original function's source code as a static string.
 #[proc_macro_attribute]
 pub fn function_to_string(_attr: TokenStream, item: TokenStream) -> TokenStream {
     let input_fn: ItemFn = parse_macro_input!(item as ItemFn);

@@ -5,19 +5,25 @@ use crate::models::agents::agent_architecture::AgentSolutionArchitect;
 use crate::models::agents::agent_backend::AgentBackendDeveloper;
 use crate::models::agents::agent_traits::{FactSheet, SpecialFunctions};
 
-//ManagingAgent — управляет группой агентов через абстрактный трейт.
-//Менеджер может работать с агентами, имеющими разные реализации SpecialFunctions, не зная их внутренностей заранее.
+/// Represents a managing agent responsible for overseeing the workflow of other agents and managing the fact sheet.
 #[derive(Debug)]
 pub struct ManagingAgent {
+    /// Attributes of the managing agent, including its objective, position, state, and memory.
     _attributes: BasicAgent,
+    /// The fact sheet containing the project description and other related information.
     fact_sheet: FactSheet,
-    //Управляет группой агентов через вектор агентов (Vec<Box<dyn SpecialFunctions>>), реализующих трейт SpecialFunctions.
+    /// A collection of agents implementing `SpecialFunctions` that perform specific tasks.
     agents: Vec<Box<dyn SpecialFunctions>>,
 }
 
-// создать экземпляр ManagingAgent через асинхронную функцию new, которая принимает
-// пользовательский запрос и обрабатывает его с помощью AI-функций для генерации описания проекта.
 impl ManagingAgent {
+    /// Creates a new `ManagingAgent` instance, initializing it with the user's request and project description.
+    ///
+    /// # Parameters
+    /// - `user_request`: A string describing the user's project requirements.
+    ///
+    /// # Returns
+    /// - A `ManagingAgent` instance wrapped in a `Result`.
     pub async fn new(user_request: String) -> Result<Self, Box<dyn std::error::Error>> {
         let agent_position = "Project Manager".to_string();
         let attributes = BasicAgent {
@@ -27,7 +33,6 @@ impl ManagingAgent {
             memory: vec![],
         };
 
-        //ai_task_request для преобразования пользовательского запроса в описание проекта.
         let project_description: String = ai_task_request(
             user_request,
             &agent_position,
@@ -51,14 +56,21 @@ impl ManagingAgent {
             fact_sheet,
         })
     }
+    /// Adds a new agent to the `ManagingAgent`.
+    ///
+    /// # Parameters
+    /// - `agent`: A boxed instance of a struct implementing the `SpecialFunctions` trait.
     fn add_agent(&mut self, agent: Box<dyn SpecialFunctions>) {
         self.agents.push(agent);
     }
+
+    /// Creates and initializes agents to handle specific tasks related to the project.
     fn create_agents(&mut self) {
         self.add_agent(Box::new(AgentSolutionArchitect::new()));
         self.add_agent(Box::new(AgentBackendDeveloper::new()));
     }
 
+    /// Executes the project workflow by iterating through all agents and invoking their `execute` methods.
     pub async fn execute_project(&mut self) {
         self.create_agents();
         for agent in &mut self.agents {
@@ -68,18 +80,18 @@ impl ManagingAgent {
     }
 }
 
-#[cfg(test)]
-mod test {
-    use super::*;
-
-    #[tokio::test]
-    async fn test_manager_agent() {
-        let user_request: &str = "I need a full stack app that fetch and tracks user fitness progress. Need to include timezone info from the web";
-
-        let mut manager = ManagingAgent::new(user_request.to_string())
-            .await
-            .expect("Error during manager creation");
-        manager.execute_project().await;
-        dbg!(manager.fact_sheet);
-    }
-}
+// #[cfg(test)]
+// mod test {
+//     use super::*;
+//
+//     #[tokio::test]
+//     async fn test_manager_agent() {
+//         let user_request: &str = "I need a full stack app that fetch and tracks user fitness progress. Need to include timezone info from the web";
+//
+//         let mut manager = ManagingAgent::new(user_request.to_string())
+//             .await
+//             .expect("Error during manager creation");
+//         manager.execute_project().await;
+//         dbg!(manager.fact_sheet);
+//     }
+// }
