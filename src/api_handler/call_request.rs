@@ -9,10 +9,8 @@ pub async fn call_gpt(messages: Vec<Message>) -> Result<String, Box<dyn std::err
     dotenv().ok();
 
     // Extract API Key information
-    let api_key: String =
-        env::var("OPEN_AI_KEY").expect("OPEN_AI_KEY not found in enviornment variables");
-    let api_org: String =
-        env::var("OPEN_AI_ORG").expect("OPEN_AI_ORG not found in enviornment variables");
+    let api_key: String = env::var("OPEN_AI_KEY").expect("OPEN_AI_KEY not found in .env");
+    let api_org: String = env::var("OPEN_AI_ORG").expect("OPEN_AI_ORG not found in .env");
 
     // Confirm endpoint
     let url: &str = "https://api.openai.com/v1/chat/completions";
@@ -39,7 +37,6 @@ pub async fn call_gpt(messages: Vec<Message>) -> Result<String, Box<dyn std::err
         .default_headers(headers)
         .build()
         .map_err(|e| -> Box<dyn std::error::Error + Send> { Box::new(e) })?;
-
 
     // println!("* ==============MESSAGE TO CALL GPT: {:?}", messages.clone());
     // Create chat completion

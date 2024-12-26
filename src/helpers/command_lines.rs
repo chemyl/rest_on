@@ -70,10 +70,11 @@ pub fn confirm_safe_code() -> bool {
         println!("[2] Stop project");
         stdout.execute(ResetColor).unwrap();
 
-
         //read use input
         let mut human_input = String::new();
-        stdin().read_line(&mut human_input).expect("Failed to read user confirmation");
+        stdin()
+            .read_line(&mut human_input)
+            .expect("Failed to read user confirmation");
 
         // trim and make lowercase
         let human_response = human_input.trim().to_lowercase();
@@ -83,7 +84,7 @@ pub fn confirm_safe_code() -> bool {
             "1" | "ok" | "y" => return true,
             "2" | "no" | "n" => return false,
             _ => {
-              println!("Invalid input. Please select one of the following");
+                println!("Invalid input. Please select one of the following");
             }
         };
     }

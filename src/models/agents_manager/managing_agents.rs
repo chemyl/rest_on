@@ -34,7 +34,7 @@ impl ManagingAgent {
             get_function_string!(convert_user_input_to_goal),
             convert_user_input_to_goal,
         )
-            .await;
+        .await;
 
         let agents: Vec<Box<dyn SpecialFunctions>> = vec![];
 
@@ -62,7 +62,8 @@ impl ManagingAgent {
     pub async fn execute_project(&mut self) {
         self.create_agents();
         for agent in &mut self.agents {
-            let _: Result<(), Box<dyn std::error::Error>> = agent.execute(&mut self.fact_sheet).await;
+            let _: Result<(), Box<dyn std::error::Error>> =
+                agent.execute(&mut self.fact_sheet).await;
         }
     }
 }

@@ -7,7 +7,8 @@ use std::fs;
 
 const CODE_TEMPLATE_PATH: &str = r#"C:\Users\Anatolii Maltsev\Documents\Coding\Rust\Projects\RustAgent\web_template\src\web_server_code_template.rs"#;
 const EXEC_MAIN_PATH: &str = r#"C:\Users\Anatolii Maltsev\Documents\Coding\Rust\Projects\RustAgent\web_template\src\main.rs"#;
-pub const WEB_SERVER_PROJECT_PATH: &str =  r#"C:\Users\Anatolii Maltsev\Documents\Coding\Rust\Projects\RustAgent\web_template\"#;
+pub const WEB_SERVER_PROJECT_PATH: &str =
+    r#"C:\Users\Anatolii Maltsev\Documents\Coding\Rust\Projects\RustAgent\web_template\"#;
 const API_SCHEMA_PATH: &str = r#"C:\Users\Anatolii Maltsev\Documents\Coding\Rust\Projects\RustAgent\auto_gpt_agent\schemas\api_schema.json"#;
 
 // Extend ai function to encourage specific output

@@ -1,4 +1,3 @@
-use std::io::{stdout, Stdout};
 use crate::ai_functions::ai_func_backend::{
     print_backend_webserver_code, print_fixed_code, print_improved_webserver_code,
     print_rest_api_endpoints,
@@ -7,8 +6,9 @@ use crate::helpers::general::{
     check_status_code, read_code_template_contents, read_exec_main_contents, save_api_endpoints,
     save_backend_code,
 };
+use std::io::{stdout, Stdout};
 
-use crate::helpers::command_lines::{PrintCommand, confirm_safe_code};
+use crate::helpers::command_lines::{confirm_safe_code, PrintCommand};
 use crate::helpers::general::{ai_task_request, WEB_SERVER_PROJECT_PATH};
 use crate::models::agent_basic::basic_agent::{AgentState, BasicAgent};
 use crate::models::agents::agent_traits::{FactSheet, RouteObject, SpecialFunctions};
@@ -61,7 +61,7 @@ impl AgentBackendDeveloper {
             get_function_string!(print_backend_webserver_code),
             print_backend_webserver_code,
         )
-            .await;
+        .await;
         println!(
             "* ==============FIRST Backend(AI RESPONSE) code to Save: {:?}",
             &ai_response
@@ -86,7 +86,7 @@ impl AgentBackendDeveloper {
             get_function_string!(print_improved_webserver_code),
             print_improved_webserver_code,
         )
-            .await;
+        .await;
         println!(
             "* ==============SECOND (AI RESPONSE) Backend code to save: {:?}",
             &ai_response
@@ -108,7 +108,7 @@ impl AgentBackendDeveloper {
             get_function_string!(print_fixed_code),
             print_fixed_code,
         )
-            .await;
+        .await;
 
         save_backend_code(&ai_response);
         factsheet.backend_code = Some(ai_response);
@@ -126,7 +126,7 @@ impl AgentBackendDeveloper {
             get_function_string!(print_rest_api_endpoints),
             print_rest_api_endpoints,
         )
-            .await;
+        .await;
 
         ai_response
     }
@@ -138,7 +138,10 @@ impl SpecialFunctions for AgentBackendDeveloper {
         &self.attributes
     }
 
-    async fn execute(&mut self, fact_sheet: &mut FactSheet ) -> Result<(), Box<dyn std::error::Error>> {
+    async fn execute(
+        &mut self,
+        fact_sheet: &mut FactSheet,
+    ) -> Result<(), Box<dyn std::error::Error>> {
         while self.attributes.state != AgentState::Finished {
             match &self.attributes.state {
                 AgentState::Discovery => {
@@ -160,7 +163,9 @@ impl SpecialFunctions for AgentBackendDeveloper {
                 AgentState::UnitTesting => {
                     // API SAFETY GUARD
                     PrintCommand::UnitTest.print_agent_message(
-                        &self.attributes.position.as_str(), "Backend Code Unit Testing: Ensuring Safe Code");
+                        &self.attributes.position.as_str(),
+                        "Backend Code Unit Testing: Ensuring Safe Code",
+                    );
 
                     let user_confirmation: bool = confirm_safe_code();
 
@@ -170,7 +175,9 @@ impl SpecialFunctions for AgentBackendDeveloper {
 
                     // Build and testing code
                     PrintCommand::UnitTest.print_agent_message(
-                        &self.attributes.position.as_str(), "Backend Code Unit Testing: Building web server...");
+                        &self.attributes.position.as_str(),
+                        "Backend Code Unit Testing: Building web server...",
+                    );
 
                     let build_backend_server: std::process::Output = Command::new("cargo")
                         .arg("build")
@@ -184,7 +191,9 @@ impl SpecialFunctions for AgentBackendDeveloper {
                     if build_backend_server.status.success() {
                         self.bug_count = 0;
                         PrintCommand::UnitTest.print_agent_message(
-                            &self.attributes.position.as_str(), "Backend Code Unit Testing: Test server build successful...");
+                            &self.attributes.position.as_str(),
+                            "Backend Code Unit Testing: Test server build successful...",
+                        );
                     } else {
                         let error_arr: Vec<u8> = build_backend_server.stderr;
                         let error_str = String::from_utf8(error_arr).unwrap();
@@ -194,7 +203,9 @@ impl SpecialFunctions for AgentBackendDeveloper {
 
                         if self.bug_count > 2 {
                             PrintCommand::Issue.print_agent_message(
-                                &self.attributes.position.as_str(), "Backend Code Unit Testing: Too many bugs found in code ");
+                                &self.attributes.position.as_str(),
+                                "Backend Code Unit Testing: Too many bugs found in code ",
+                            );
                             panic!("ERROR: Too many bugs");
                         }
 
@@ -212,19 +223,27 @@ impl SpecialFunctions for AgentBackendDeveloper {
                     let api_endpoints_str: String = self.call_extract_rest_api_endpoints().await;
 
                     // convert API endpoints into value
-                    let api_endpoints: Vec<RouteObject> = serde_json::from_str(api_endpoints_str.as_str()).expect("Failed to parse API endpoints");
+                    let api_endpoints: Vec<RouteObject> =
+                        serde_json::from_str(api_endpoints_str.as_str())
+                            .expect("Failed to parse API endpoints");
 
                     // define endpoints checks. Выбрать в итераторе только проверяемые ендпоинты
-                    let check_endpoints: Vec<RouteObject> = api_endpoints.iter()
-                        .filter(|&route_object| { route_object.method == "get" && route_object.is_route_dynamic == "false" })
-                        .cloned().collect();
+                    let check_endpoints: Vec<RouteObject> = api_endpoints
+                        .iter()
+                        .filter(|&route_object| {
+                            route_object.method == "get" && route_object.is_route_dynamic == "false"
+                        })
+                        .cloned()
+                        .collect();
 
                     // Store API endpoints
                     fact_sheet.api_endpoint_schema = Some(check_endpoints.clone());
 
                     //Run backend application
                     PrintCommand::UnitTest.print_agent_message(
-                        &self.attributes.position.as_str(), "Backend Code Unit Testing: Starting Web server...");
+                        &self.attributes.position.as_str(),
+                        "Backend Code Unit Testing: Starting Web server...",
+                    );
 
                     let mut run_backend_server: std::process::Child = Command::new("cargo")
                         .arg("run")
@@ -236,49 +255,68 @@ impl SpecialFunctions for AgentBackendDeveloper {
 
                     //Launching testing on the server
                     PrintCommand::UnitTest.print_agent_message(
-                        &self.attributes.position.as_str(), "Backend Code Unit Testing: Launching test on server in 5 sec...");
+                        &self.attributes.position.as_str(),
+                        "Backend Code Unit Testing: Launching test on server in 5 sec...",
+                    );
 
                     //Sleep for 5 sec before call webserver
                     let seconds_sleep: Duration = Duration::from_secs(5);
                     time::sleep(seconds_sleep).await;
 
-
                     // check endpoints against server
                     for endpoint in check_endpoints {
-                        let test_message: String = format!("Testing endpoint: '{}...'", endpoint.route);
+                        let test_message: String =
+                            format!("Testing endpoint: '{}...'", endpoint.route);
                         PrintCommand::UnitTest.print_agent_message(
-                            &self.attributes.position.as_str(), test_message.as_str());
+                            &self.attributes.position.as_str(),
+                            test_message.as_str(),
+                        );
 
                         //create client to call endpoints api
                         let client: Client = Client::builder()
                             .timeout(Duration::from_secs(5))
-                            .build().unwrap();
+                            .build()
+                            .unwrap();
 
                         // test url
                         let url: String = format!("http://127.0.0.1:8080{}", endpoint.route);
                         match check_status_code(&client, &url).await {
                             Ok(status_code) => {
                                 if status_code != 200 {
-                                    let error_msg: String = format!("WARNING: Failed to call backend endpoint{}", endpoint.route);
+                                    let error_msg: String = format!(
+                                        "WARNING: Failed to call backend endpoint{}",
+                                        endpoint.route
+                                    );
                                     PrintCommand::Issue.print_agent_message(
-                                        &self.attributes.position.as_str(), error_msg.as_str());
+                                        &self.attributes.position.as_str(),
+                                        error_msg.as_str(),
+                                    );
                                 }
                             }
                             Err(error_msg) => {
                                 //kill process
-                                run_backend_server.kill().expect("Unable to stop backend application");
-                                let error_msg: String = format!("ERROR: While checking backend{}", error_msg);
+                                run_backend_server
+                                    .kill()
+                                    .expect("Unable to stop backend application");
+                                let error_msg: String =
+                                    format!("ERROR: While checking backend{}", error_msg);
                                 PrintCommand::Issue.print_agent_message(
-                                    &self.attributes.position.as_str(), error_msg.as_str());
+                                    &self.attributes.position.as_str(),
+                                    error_msg.as_str(),
+                                );
                             }
                         }
                     }
 
                     save_api_endpoints(&api_endpoints_str);
                     PrintCommand::Success.print_agent_message(
-                        &self.attributes.position.as_str(), "Backend Testing completed...");
+                        &self.attributes.position.as_str(),
+                        "Backend Testing completed...",
+                    );
 
-                    run_backend_server.kill().expect("failed to Kill server on completion");
+                    run_backend_server
+                        .kill()
+                        .expect("failed to Kill server on completion");
                     self.attributes.state = AgentState::Finished;
                 }
 
