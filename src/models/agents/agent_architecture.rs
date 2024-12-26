@@ -10,11 +10,6 @@ use std::error::Error;
 use std::time::Duration;
 // Solution Architect
 
-// Структура AgentSolutionArchitect представляет собой агента, работающего с AI-сервисами для:
-// Формирования области проекта (Project Scope).
-// Определения внешних ссылок, относящихся к проекту.
-
-// Solutions Architect
 #[derive(Debug)]
 pub struct AgentSolutionArchitect {
     attributes: BasicAgent,
@@ -34,37 +29,28 @@ impl AgentSolutionArchitect {
     }
 
     // Retrieve Project Scope
-    async fn call_project_scope(&mut self, factsheet: &mut FactSheet) -> ProjectScope {
-        let msg_context: String = format!("{}", factsheet.project_description);
+    async fn call_project_scope(&mut self, fact_sheet: &mut FactSheet) -> ProjectScope {
+        let project_description: String = format!("{}", fact_sheet.project_description);
 
-        let ai_response: ProjectScope = ai_task_request_decoded::<ProjectScope>(
-            msg_context,
+        let decoded_project_scope: ProjectScope = ai_task_request_decoded::<ProjectScope>(
+            project_description,
             &self.attributes.position,
             get_function_string!(print_project_scope),
-            print_project_scope,
-        )
-        .await;
+            print_project_scope).await;
 
-        factsheet.project_scope = Some(ai_response.clone());
+        fact_sheet.project_scope = Some(decoded_project_scope.clone());
         self.attributes.update_state(AgentState::Finished);
-        return ai_response;
+        decoded_project_scope
     }
 
-    // Retrieve Project Scope
-    async fn call_determine_external_urls(
-        &mut self,
-        factsheet: &mut FactSheet,
-        msg_context: String,
-    ) {
-        let ai_response: Vec<String> = ai_task_request_decoded::<Vec<String>>(
+    async fn call_determine_external_urls(&mut self, fact_sheet: &mut FactSheet, msg_context: String) {
+        let decoded_project_urls: Vec<String> = ai_task_request_decoded::<Vec<String>>(
             msg_context,
             &self.attributes.position,
             get_function_string!(print_site_urls),
-            print_site_urls,
-        )
-        .await;
+            print_site_urls).await;
 
-        factsheet.external_urls = Some(ai_response);
+        fact_sheet.external_urls = Some(decoded_project_urls);
         self.attributes.state = AgentState::UnitTesting;
     }
 }
@@ -74,55 +60,42 @@ impl SpecialFunctions for AgentSolutionArchitect {
     fn get_attributes_from_agent(&self) -> &BasicAgent {
         &self.attributes
     }
-
-    async fn execute(
-        &mut self,
-        factsheet: &mut FactSheet,
-    ) -> Result<(), Box<dyn std::error::Error>> {
-        // !!! WARNING - BE CAREFUL OF INFINITATE LOOPS !!!
+    async fn execute(&mut self, fact_sheet: &mut FactSheet) -> Result<(), Box<dyn Error>> {
         while self.attributes.state != AgentState::Finished {
             match self.attributes.state {
                 AgentState::Discovery => {
-                    let project_scope: ProjectScope = self.call_project_scope(factsheet).await;
+                    let project_scope: ProjectScope = self.call_project_scope(fact_sheet).await;
 
                     // Confirm if external urls
                     if project_scope.is_external_urls_required {
                         self.call_determine_external_urls(
-                            factsheet,
-                            factsheet.project_description.clone(),
-                        )
-                        .await;
+                            fact_sheet,
+                            fact_sheet.project_description.clone()).await;
                         self.attributes.state = AgentState::UnitTesting;
                     }
                 }
 
                 AgentState::UnitTesting => {
-                    let mut exclude_urls: Vec<String> = vec![];
+                    let mut excluded_external_urls: Vec<String> = vec![];
 
                     let client: Client = Client::builder()
                         .timeout(Duration::from_secs(5))
-                        .build()
-                        .unwrap();
+                        .build().unwrap();
 
                     // Defining urls to check
-                    let urls: &Vec<String> = factsheet
-                        .external_urls
-                        .as_ref()
-                        .expect("No URL object on factsheet");
+                    let urls: &Vec<String> = fact_sheet
+                        .external_urls.as_ref().expect("No URL object on fact_sheet");
 
                     // Find faulty urls
                     for url in urls {
-                        let endpoint_str: String = format!("Testing URL Endpoint: {}", url);
-                        PrintCommand::UnitTest.print_agent_message(
-                            self.attributes.position.as_str(),
-                            endpoint_str.as_str(),
-                        );
+                        let endpoint_str: String = format!("Testing External URL Endpoint: {}", url);
+                        PrintCommand::UnitTest.print_agent_message(self.attributes.position.as_str(), endpoint_str.as_str());
 
                         // Perform URL Test
                         match check_status_code(&client, url).await {
                             Ok(status_code) => {
                                 if status_code != 200 {
-                                    exclude_urls.push(url.clone())
+                                    excluded_external_urls.push(url.clone())
                                 }
                             }
                             Err(e) => println!("Error checking {}: {}", url, e),
@@ -130,26 +103,20 @@ impl SpecialFunctions for AgentSolutionArchitect {
                     }
 
                     // Exclude any faulty urls
-                    if exclude_urls.len() > 0 {
-                        let new_urls: Vec<String> = factsheet
+                    if excluded_external_urls.len() > 0 {
+                        let confirmed_external_urls: Vec<String> = fact_sheet
                             .external_urls
                             .as_ref()
                             .unwrap()
                             .iter()
-                            .filter(|url| !exclude_urls.contains(&url))
+                            .filter(|url| !excluded_external_urls.contains(&url))
                             .cloned()
                             .collect();
-                        factsheet.external_urls = Some(new_urls);
+                        fact_sheet.external_urls = Some(confirmed_external_urls);
                     }
-
-                    // Confirm done
                     self.attributes.state = AgentState::Finished;
                 }
-
-                // Default to Finished state
-                _ => {
-                    self.attributes.state = AgentState::Finished;
-                }
+                _ => self.attributes.state = AgentState::Finished
             }
         }
 
@@ -179,7 +146,6 @@ mod tests {
             .expect("Unable to execute Solutions Architect Agent");
         assert!(factsheet.project_scope != None);
         assert!(factsheet.external_urls.is_some());
-
         dbg!(factsheet);
     }
 }

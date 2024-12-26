@@ -4,42 +4,30 @@ use reqwest::header::{HeaderMap, HeaderValue};
 use reqwest::Client;
 use std::env;
 
-// Call Large Language Model (i.e. GPT-4)
 pub async fn call_gpt(messages: Vec<Message>) -> Result<String, Box<dyn std::error::Error + Send>> {
     dotenv().ok();
-
-    // Extract API Key information
     let api_key: String = env::var("OPEN_AI_KEY").expect("OPEN_AI_KEY not found in .env");
     let api_org: String = env::var("OPEN_AI_ORG").expect("OPEN_AI_ORG not found in .env");
-
-    // Confirm endpoint
     let url: &str = "https://api.openai.com/v1/chat/completions";
-
-    // Create headers
     let mut headers: HeaderMap = HeaderMap::new();
 
-    // Create api key header
     headers.insert(
         "authorization",
         HeaderValue::from_str(&format!("Bearer {}", api_key))
             .map_err(|e| -> Box<dyn std::error::Error + Send> { Box::new(e) })?,
     );
 
-    // Create Open AI Org header
     headers.insert(
         "OpenAI-Organization",
         HeaderValue::from_str(api_org.as_str())
             .map_err(|e| -> Box<dyn std::error::Error + Send> { Box::new(e) })?,
     );
 
-    // Create client
     let client: Client = Client::builder()
         .default_headers(headers)
         .build()
         .map_err(|e| -> Box<dyn std::error::Error + Send> { Box::new(e) })?;
 
-    // println!("* ==============MESSAGE TO CALL GPT: {:?}", messages.clone());
-    // Create chat completion
     let chat_completion: ChatCompletion = ChatCompletion {
         model: "gpt-4".to_string(),
         // model: "gpt-3.5-turbo".to_string(),
@@ -48,7 +36,7 @@ pub async fn call_gpt(messages: Vec<Message>) -> Result<String, Box<dyn std::err
     };
 
     // Extract API Response
-    let res: APIResponse = client
+    let llm_raw_response: APIResponse = client
         .post(url)
         .json(&chat_completion)
         .send()
@@ -57,9 +45,8 @@ pub async fn call_gpt(messages: Vec<Message>) -> Result<String, Box<dyn std::err
         .json()
         .await
         .map_err(|e| -> Box<dyn std::error::Error + Send> { Box::new(e) })?;
-    // println!("* ==============MESSAGE RESULT FROM GPT: {:?}", res.choices[0].message.content.clone());
-    // Send Response
-    Ok(res.choices[0].message.content.clone())
+
+    Ok(llm_raw_response.choices[0].message.content.clone())
 }
 
 #[cfg(test)]

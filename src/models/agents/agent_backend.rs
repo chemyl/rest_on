@@ -6,7 +6,6 @@ use crate::helpers::general::{
     check_status_code, read_code_template_contents, read_exec_main_contents, save_api_endpoints,
     save_backend_code,
 };
-use std::io::{stdout, Stdout};
 
 use crate::helpers::command_lines::{confirm_safe_code, PrintCommand};
 use crate::helpers::general::{ai_task_request, WEB_SERVER_PROJECT_PATH};
@@ -17,7 +16,6 @@ use async_trait::async_trait;
 use reqwest::Client;
 use std::process::{Command, Stdio};
 use std::time::Duration;
-use syn::token::Comma;
 use tokio::time;
 
 #[derive(Debug)]
@@ -43,16 +41,16 @@ impl AgentBackendDeveloper {
         }
     }
 
-    async fn call_initial_backend_code(&mut self, factsheet: &mut FactSheet) {
+    async fn call_initial_backend_code(&mut self, fact_sheet: &mut FactSheet) {
         let code_template_str: String = read_code_template_contents();
-        println!(
-            "* ==============FIRST Backend code TEMPLATE: {:?}",
-            &code_template_str
-        );
+        // println!(
+        //     "* ==============FIRST Backend code TEMPLATE: {:?}",
+        //     &code_template_str
+        // );
         // Concatenate Instruction
         let msg_context: String = format!(
             "CODE TEMPLATE: {} \n PROJECT_DESCRIPTION: {} \n",
-            code_template_str, factsheet.project_description
+            code_template_str, fact_sheet.project_description
         );
 
         let ai_response: String = ai_task_request(
@@ -61,20 +59,20 @@ impl AgentBackendDeveloper {
             get_function_string!(print_backend_webserver_code),
             print_backend_webserver_code,
         )
-        .await;
-        println!(
-            "* ==============FIRST Backend(AI RESPONSE) code to Save: {:?}",
-            &ai_response
-        );
+            .await;
+        // println!(
+        //     "* ==============FIRST Backend(AI RESPONSE) code to Save: {:?}",
+        //     &ai_response
+        // );
         save_backend_code(&ai_response);
-        factsheet.backend_code = Some(ai_response);
+        fact_sheet.backend_code = Some(ai_response);
     }
 
     async fn call_improved_backend_code(&mut self, factsheet: &mut FactSheet) {
-        println!(
-            "* ==============SECOND  Backend code TEMPLATE: {:?}",
-            &factsheet.backend_code
-        );
+        // println!(
+        //     "* ==============SECOND  Backend code TEMPLATE: {:?}",
+        //     &factsheet.backend_code
+        // );
         let msg_context: String = format!(
             "CODE TEMPLATE: {:?} \n PROJECT_DESCRIPTION: {:?} \n",
             factsheet.backend_code, factsheet
@@ -86,20 +84,20 @@ impl AgentBackendDeveloper {
             get_function_string!(print_improved_webserver_code),
             print_improved_webserver_code,
         )
-        .await;
-        println!(
-            "* ==============SECOND (AI RESPONSE) Backend code to save: {:?}",
-            &ai_response
-        );
+            .await;
+        // println!(
+        //     "* ==============SECOND (AI RESPONSE) Backend code to save: {:?}",
+        //     &ai_response
+        // );
         save_backend_code(&ai_response);
         factsheet.backend_code = Some(ai_response);
     }
 
-    async fn call_fix_code_bugs(&mut self, factsheet: &mut FactSheet) {
+    async fn call_fix_code_bugs(&mut self, fact_sheet: &mut FactSheet) {
         let msg_context: String = format!(
             "BROKEN_CODE: {:?} \n ERROR_BUGS: {:?} \n
       THIS FUNCTION ONLY OUTPUTS CODE. JUST OUTPUT THE CODE.",
-            factsheet.backend_code, self.bug_errors
+            fact_sheet.backend_code, self.bug_errors
         );
 
         let ai_response: String = ai_task_request(
@@ -108,10 +106,10 @@ impl AgentBackendDeveloper {
             get_function_string!(print_fixed_code),
             print_fixed_code,
         )
-        .await;
+            .await;
 
         save_backend_code(&ai_response);
-        factsheet.backend_code = Some(ai_response);
+        fact_sheet.backend_code = Some(ai_response);
     }
 
     async fn call_extract_rest_api_endpoints(&self) -> String {
@@ -126,7 +124,7 @@ impl AgentBackendDeveloper {
             get_function_string!(print_rest_api_endpoints),
             print_rest_api_endpoints,
         )
-        .await;
+            .await;
 
         ai_response
     }
@@ -138,12 +136,11 @@ impl SpecialFunctions for AgentBackendDeveloper {
         &self.attributes
     }
 
-    async fn execute(
-        &mut self,
-        fact_sheet: &mut FactSheet,
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    async fn execute(&mut self, fact_sheet: &mut FactSheet) -> Result<(), Box<dyn std::error::Error>> {
         while self.attributes.state != AgentState::Finished {
+
             match &self.attributes.state {
+
                 AgentState::Discovery => {
                     self.call_initial_backend_code(fact_sheet).await;
                     self.attributes.state = AgentState::Working;
@@ -156,7 +153,7 @@ impl SpecialFunctions for AgentBackendDeveloper {
                     } else {
                         self.call_fix_code_bugs(fact_sheet).await;
                     }
-                    self.attributes.state = AgentState::Finished;
+                    self.attributes.state = AgentState::UnitTesting;
                     continue;
                 }
 
@@ -192,8 +189,7 @@ impl SpecialFunctions for AgentBackendDeveloper {
                         self.bug_count = 0;
                         PrintCommand::UnitTest.print_agent_message(
                             &self.attributes.position.as_str(),
-                            "Backend Code Unit Testing: Test server build successful...",
-                        );
+                            "Backend Code Unit Testing: Test server build successful...");
                     } else {
                         let error_arr: Vec<u8> = build_backend_server.stderr;
                         let error_str = String::from_utf8(error_arr).unwrap();
@@ -203,13 +199,13 @@ impl SpecialFunctions for AgentBackendDeveloper {
 
                         if self.bug_count > 2 {
                             PrintCommand::Issue.print_agent_message(
-                                &self.attributes.position.as_str(),
-                                "Backend Code Unit Testing: Too many bugs found in code ",
+                                self.attributes.position.as_str(),
+                                "Backend Code Unit Testing: Too many bugs found in code",
                             );
-                            panic!("ERROR: Too many bugs");
+                            panic!("Error: Too many bugs")
                         }
 
-                        // Pass back to work
+                        // Pass back for rework
                         self.attributes.state = AgentState::Working;
                         continue;
                     }
@@ -219,7 +215,6 @@ impl SpecialFunctions for AgentBackendDeveloper {
                     */
 
                     // Exctract API Endpoints
-
                     let api_endpoints_str: String = self.call_extract_rest_api_endpoints().await;
 
                     // convert API endpoints into value
@@ -284,7 +279,7 @@ impl SpecialFunctions for AgentBackendDeveloper {
                             Ok(status_code) => {
                                 if status_code != 200 {
                                     let error_msg: String = format!(
-                                        "WARNING: Failed to call backend endpoint{}",
+                                        "WARNING: Failed to call backend endpoint {}",
                                         endpoint.route
                                     );
                                     PrintCommand::Issue.print_agent_message(
@@ -299,7 +294,7 @@ impl SpecialFunctions for AgentBackendDeveloper {
                                     .kill()
                                     .expect("Unable to stop backend application");
                                 let error_msg: String =
-                                    format!("ERROR: While checking backend{}", error_msg);
+                                    format!("ERROR: While checking backend {}", error_msg);
                                 PrintCommand::Issue.print_agent_message(
                                     &self.attributes.position.as_str(),
                                     error_msg.as_str(),
@@ -319,7 +314,6 @@ impl SpecialFunctions for AgentBackendDeveloper {
                         .expect("failed to Kill server on completion");
                     self.attributes.state = AgentState::Finished;
                 }
-
                 _ => {}
             }
         }
@@ -335,7 +329,7 @@ mod tests {
     async fn tests_backend_developer() {
         let mut agent: AgentBackendDeveloper = AgentBackendDeveloper::new();
 
-        let factsheet_str: &str = r#"
+        let fact_sheet_str: &str = r#"
       {
         "project_description": "build a website that fetches and tracks fitness progress with timezone information",
         "project_scope": {
@@ -350,7 +344,7 @@ mod tests {
         "api_endpoint_schema": null
       }"#;
 
-        let mut factsheet: FactSheet = serde_json::from_str(factsheet_str).unwrap();
+        let mut factsheet: FactSheet = serde_json::from_str(fact_sheet_str).unwrap();
 
         // agent.attributes.state = AgentState::Discovery;
         agent.attributes.state = AgentState::UnitTesting;
