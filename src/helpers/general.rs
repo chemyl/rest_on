@@ -8,7 +8,7 @@ use std::fs;
 const CODE_TEMPLATE_PATH: &str = r#"C:\Users\Anatolii Maltsev\Documents\Coding\Rust\Projects\RustAgent\web_template\src\web_server_code_template.rs"#;
 const EXEC_MAIN_PATH: &str = r#"C:\Users\Anatolii Maltsev\Documents\Coding\Rust\Projects\RustAgent\web_template\src\main.rs"#;
 pub const WEB_SERVER_PROJECT_PATH: &str =  r#"C:\Users\Anatolii Maltsev\Documents\Coding\Rust\Projects\RustAgent\web_template\"#;
-const API_SCHEMA_PATH: &str = "/Users/Anatolii Maltsev/Documents/Coding/Rust/Projects/RustAgent/auto_gpt_agent/schemas/api_schema.json>";
+const API_SCHEMA_PATH: &str = r#"C:\Users\Anatolii Maltsev\Documents\Coding\Rust\Projects\RustAgent\auto_gpt_agent\schemas\api_schema.json"#;
 
 // Extend ai function to encourage specific output
 pub fn extend_ai_function(ai_func: fn(&str) -> &'static str, func_input: &str) -> Message {
@@ -39,7 +39,7 @@ pub async fn ai_task_request(
 ) -> String {
     // Extend AI function
     let extended_msg: Message = extend_ai_function(function_pass, &msg_context);
-    println!("* ==============EXTENDED MESSAGE: {:?}",extended_msg.clone());
+    // println!("* ==============EXTENDED MESSAGE: {:?}",extended_msg.clone());
     // Print current status
     PrintCommand::AICall.print_agent_message(agent_position, agent_operation);
 

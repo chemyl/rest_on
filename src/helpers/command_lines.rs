@@ -9,6 +9,7 @@ pub enum PrintCommand {
     AICall,
     UnitTest,
     Issue,
+    Success,
 }
 
 impl PrintCommand {
@@ -19,6 +20,7 @@ impl PrintCommand {
             PrintCommand::AICall => Color::Cyan,
             PrintCommand::UnitTest => Color::Magenta,
             PrintCommand::Issue => Color::Red,
+            PrintCommand::Success => Color::Green,
         };
 
         // Print the agent statement in a specific color
@@ -57,8 +59,8 @@ pub fn confirm_safe_code() -> bool {
         // print questions
         stdout.execute(SetForegroundColor(Color::Blue)).unwrap();
         println!();
-        println!("WARNING: You are about to run code written entirely by AI.");
-        println!("REVIEW CODE and confirm you wish to continue.");
+        println!("WARNING: You are about to run code written entirely by AI");
+        println!("Please, REVIEW CODE and confirm you wish to continue");
         stdout.execute(ResetColor).unwrap();
 
         // options with different colors

@@ -41,7 +41,7 @@ pub async fn call_gpt(messages: Vec<Message>) -> Result<String, Box<dyn std::err
         .map_err(|e| -> Box<dyn std::error::Error + Send> { Box::new(e) })?;
 
 
-    println!("* ==============MESSAGE TO CALL GPT: {:?}", messages.clone());
+    // println!("* ==============MESSAGE TO CALL GPT: {:?}", messages.clone());
     // Create chat completion
     let chat_completion: ChatCompletion = ChatCompletion {
         model: "gpt-4".to_string(),
@@ -60,7 +60,7 @@ pub async fn call_gpt(messages: Vec<Message>) -> Result<String, Box<dyn std::err
         .json()
         .await
         .map_err(|e| -> Box<dyn std::error::Error + Send> { Box::new(e) })?;
-    println!("* ==============MESSAGE RESULT FROM GPT: {:?}", res.choices[0].message.content.clone());
+    // println!("* ==============MESSAGE RESULT FROM GPT: {:?}", res.choices[0].message.content.clone());
     // Send Response
     Ok(res.choices[0].message.content.clone())
 }
