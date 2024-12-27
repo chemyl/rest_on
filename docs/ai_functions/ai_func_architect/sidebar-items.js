@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":["print_project_scope","print_site_urls"]};
