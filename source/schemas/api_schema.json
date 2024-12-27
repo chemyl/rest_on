@@ -1,17 +1,18 @@
 [
   {
-    "route": "/book",
+    "route": "/news",
     "is_route_dynamic": "false",
     "method": "post",
     "request_body": {
       "id": "number",
       "title": "string",
-      "pages_read": "number"
+      "content": "string",
+      "viral": "bool"
     },
     "response": "None"
   },
   {
-    "route": "/book",
+    "route": "/news",
     "is_route_dynamic": "false",
     "method": "get",
     "request_body": "None",
@@ -19,59 +20,40 @@
       {
         "id": "number",
         "title": "string",
-        "pages_read": "number"
+        "content": "string",
+        "viral": "bool"
       }
     ]
   },
   {
-    "route": "/book",
+    "route": "/news",
     "is_route_dynamic": "false",
     "method": "put",
     "request_body": {
       "id": "number",
       "title": "string",
-      "pages_read": "number"
+      "content": "string",
+      "viral": "bool"
     },
     "response": "None"
   },
   {
-    "route": "/book/{id}",
+    "route": "/news/{id}",
     "is_route_dynamic": "true",
     "method": "get",
     "request_body": "None",
     "response": {
       "id": "number",
       "title": "string",
-      "pages_read": "number"
+      "content": "string",
+      "viral": "bool"
     }
   },
   {
-    "route": "/book/{id}",
+    "route": "/news/{id}",
     "is_route_dynamic": "true",
     "method": "delete",
     "request_body": "None",
-    "response": "None"
-  },
-  {
-    "route": "/register",
-    "is_route_dynamic": "false",
-    "method": "post",
-    "request_body": {
-      "id": "number",
-      "user_name": "string",
-      "user_password": "string"
-    },
-    "response": "None"
-  },
-  {
-    "route": "/login",
-    "is_route_dynamic": "false",
-    "method": "post",
-    "request_body": {
-      "id": "number",
-      "user_name": "string",
-      "user_password": "string"
-    },
     "response": "None"
   }
 ]

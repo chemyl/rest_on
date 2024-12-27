@@ -31,6 +31,7 @@ pub fn print_fixed_code(_broken_code_with_bugs: &str) {
     /// INPUT: Takes in Rust BROKEN_CODE and the ERROR_BUGS found
     /// FUNCTION: Removes bugs from code
     /// IMPORTANT: Only prints out the new and improved code. No commentary or anything else
+    /// OUTPUT: Print ONLY the code, nothing else. This function ONLY prints code.
     println!(OUTPUT)
 }
 

@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"mod":["agent_basic","agents","agents_manager","general"]};

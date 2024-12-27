@@ -5,11 +5,10 @@ use reqwest::Client;
 use serde::de::DeserializeOwned;
 use std::fs;
 
-pub const WEB_SERVER_PROJECT_PATH: &str =
-    r#"C:\Users\Anatolii Maltsev\Documents\Coding\Rust\Projects\RustAgent\web_template\"#;
-const EXEC_MAIN_PATH: &str = r#"C:\Users\Anatolii Maltsev\Documents\Coding\Rust\Projects\RustAgent\web_template\src\main.rs"#;
-const API_SCHEMA_PATH: &str = r#"C:\Users\Anatolii Maltsev\Documents\Coding\Rust\Projects\RustAgent\auto_gpt_agent\schemas\api_schema.json"#;
-const CODE_TEMPLATE_PATH: &str = r#"C:\Users\Anatolii Maltsev\Documents\Coding\Rust\Projects\RustAgent\web_template\src\web_server_code_template.rs"#;
+pub const WEB_SERVER_PROJECT_PATH: &str = r#"C:\Users\Anatolii Maltsev\Documents\Coding\Rust\Projects\RustAgent\auto_gpt_agent"#;
+const EXEC_MAIN_PATH: &str = r#"C:\Users\Anatolii Maltsev\Documents\Coding\Rust\Projects\RustAgent\auto_gpt_agent\src\main2.rs"#;
+const API_SCHEMA_PATH: &str = r#"C:\Users\Anatolii Maltsev\Documents\Coding\Rust\Projects\RustAgent\auto_gpt_agent\source\schemas\api_schema.json"#;
+const CODE_TEMPLATE_PATH: &str = r#"C:\Users\Anatolii Maltsev\Documents\Coding\Rust\Projects\RustAgent\auto_gpt_agent\source\web_server_code_template.rs"#;
 
 /// Extends an AI function by formatting the input and creating a system message.
 /// This function prepares a message in the format expected by GPT models.
@@ -95,19 +94,19 @@ pub fn read_code_template_contents() -> String {
 /// Reads the contents of the main server file from the specified path.
 ///
 /// # Returns
-/// The contents of the `main.rs` file as a `String`.
+/// The contents of the `main2.rs` file as a `String`.
 pub fn read_exec_main_contents() -> String {
     let path: String = String::from(EXEC_MAIN_PATH);
     fs::read_to_string(path).expect("Failed to read code template")
 }
 
-/// Saves the backend code to the `main.rs` file.
+/// Saves the backend code to the `main2.rs` file.
 ///
 /// # Arguments
 /// - `contents`: The code to write into the file.
 pub fn save_backend_code(contents: &String) {
     let path: String = String::from(EXEC_MAIN_PATH);
-    fs::write(path, contents).expect("Failed to write main.rs file");
+    fs::write(path, contents).expect("Failed to write main2.rs file");
 }
 
 /// Saves the API endpoints to a JSON file.

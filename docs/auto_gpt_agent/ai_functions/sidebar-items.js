@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"mod":["ai_func_architect","ai_func_backend","ai_func_manager"]};

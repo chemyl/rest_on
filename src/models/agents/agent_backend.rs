@@ -6,6 +6,7 @@ use crate::helpers::general::{
     check_status_code, read_code_template_contents, read_exec_main_contents, save_api_endpoints,
     save_backend_code,
 };
+use std::path::Path;
 
 use crate::helpers::command_lines::{confirm_safe_code, PrintCommand};
 use crate::helpers::general::{ai_task_request, WEB_SERVER_PROJECT_PATH};
@@ -65,7 +66,7 @@ impl AgentBackendDeveloper {
             get_function_string!(print_backend_webserver_code),
             print_backend_webserver_code,
         )
-        .await;
+            .await;
         save_backend_code(&ai_response);
         fact_sheet.backend_code = Some(ai_response);
     }
@@ -86,7 +87,7 @@ impl AgentBackendDeveloper {
             get_function_string!(print_improved_webserver_code),
             print_improved_webserver_code,
         )
-        .await;
+            .await;
         save_backend_code(&ai_response);
         fact_sheet.backend_code = Some(ai_response);
     }
@@ -108,7 +109,7 @@ impl AgentBackendDeveloper {
             get_function_string!(print_fixed_code),
             print_fixed_code,
         )
-        .await;
+            .await;
 
         save_backend_code(&ai_response);
         fact_sheet.backend_code = Some(ai_response);
@@ -127,7 +128,7 @@ impl AgentBackendDeveloper {
             get_function_string!(print_rest_api_endpoints),
             print_rest_api_endpoints,
         )
-        .await;
+            .await;
 
         ai_response
     }
@@ -189,8 +190,8 @@ impl SpecialFunctions for AgentBackendDeveloper {
                         "Backend Code Unit Testing: Building web server...",
                     );
 
-                    let build_backend_server: std::process::Output = Command::new("cargo")
-                        .arg("build")
+                    let build_backend_server = Command::new("cargo")
+                        .args(&["build", "--bin", "main2"])
                         .current_dir(WEB_SERVER_PROJECT_PATH)
                         .stdout(Stdio::piped())
                         .stderr(Stdio::piped())
@@ -207,7 +208,6 @@ impl SpecialFunctions for AgentBackendDeveloper {
                     } else {
                         let error_arr: Vec<u8> = build_backend_server.stderr;
                         let error_str = String::from_utf8(error_arr).unwrap();
-                        //update error count
                         self.bug_count += 1;
                         self.bug_errors = Some(error_str);
 
@@ -219,7 +219,6 @@ impl SpecialFunctions for AgentBackendDeveloper {
                             panic!("Error: Too many bugs")
                         }
 
-                        // Pass back for rework
                         self.attributes.state = AgentState::Working;
                         continue;
                     }
@@ -245,13 +244,29 @@ impl SpecialFunctions for AgentBackendDeveloper {
                         "Backend Code Unit Testing: Starting Web server...",
                     );
 
-                    let mut run_backend_server: std::process::Child = Command::new("cargo")
-                        .arg("run")
-                        .current_dir(WEB_SERVER_PROJECT_PATH)
-                        .stdout(Stdio::piped())
-                        .stderr(Stdio::piped())
-                        .spawn()
+
+                    let binary_name = "main2";
+                    // Путь к собранному бинарнику
+                    let binary_path = Path::new("target/debug").join(binary_name);
+                    if binary_path.exists() {
+                        println!("Running binary: {:?}", binary_path);
+                    }
+
+                    // Запуск бинарника
+                    let mut run_backend_server: std::process::Child = Command::new(binary_path)
+                        .stdout(Stdio::inherit()) // Наследуем stdout для прямого вывода в консоль
+                        .stderr(Stdio::inherit()) // Наследуем stderr для прямого вывода ошибок
+                        .spawn() // Используем spawn, чтобы запустить в текущем процессе
                         .expect("Failed to run backend application");
+
+
+                    // let mut run_backend_server: std::process::Child = Command::new("cargo")
+                    //     .arg("run")
+                    //     .current_dir(WEB_SERVER_PROJECT_PATH)
+                    //     .stdout(Stdio::piped())
+                    //     .stderr(Stdio::piped())
+                    //     .spawn()
+                    //     .expect("Failed to run backend application");
 
                     PrintCommand::UnitTest.print_agent_message(
                         &self.attributes.position.as_str(),
@@ -353,3 +368,36 @@ impl SpecialFunctions for AgentBackendDeveloper {
 //             .expect("Failed to execute Backend Developer agent");
 //     }
 // }
+
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[tokio::test]
+    async fn tests_backend_developer() {
+        let mut agent: AgentBackendDeveloper = AgentBackendDeveloper::new();
+
+        let fact_sheet_str: &str = r#"
+      {
+        "project_description": "build a website that fetches and tracks fitness progress with timezone information",
+        "project_scope": {
+          "is_crud_required": false,
+          "is_user_login_and_logout": false,
+          "is_external_urls_required": false
+        },
+        "external_urls": [],
+        "backend_code": null,
+        "api_endpoint_schema": null
+      }"#;
+
+        let mut factsheet: FactSheet = serde_json::from_str(fact_sheet_str).unwrap();
+
+        // agent.attributes.state = AgentState::Discovery;
+        agent.attributes.state = AgentState::UnitTesting;
+        agent
+            .execute(&mut factsheet)
+            .await
+            .expect("Failed to execute Backend Developer agent");
+    }
+}

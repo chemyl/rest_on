@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"enum":["PrintCommand"],"fn":["confirm_safe_code","get_user_response"]};
