@@ -82,7 +82,7 @@ After generating the backend code, you can
 
 ### 1. **Console Output**
 
-![launcher window](https://github.com/chemyl/auto_gpt_agent/tree/master/img/console_output.png)
+![launcher window](https://github.com/chemyl/auto_gpt_agent/blob/master/img/console_output.png)
 
 ### 2. **Generated [main] Example**
 
