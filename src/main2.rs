@@ -6,6 +6,7 @@ use std::collections::HashMap;
 use std::fs;
 use std::io::Write;
 use ::std::sync::Mutex;
+use reqwest::Error;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 struct News {
@@ -92,6 +93,13 @@ async fn delete_news(app_state: web::Data<AppState>, id: web::Path<u64>) -> impl
     db.remove(&id.into_inner());
     let _ = db.save_to_file();
     HttpResponse::Ok().finish()
+}
+
+async fn fetch_external_news() -> Result<Vec<News>, Error> {
+    let url = "https://api.gdeltproject.org/api/v2/summary/summary?d=day";
+    let response = reqwest::get(url).await?;
+    let news: Vec<News> = response.json().await?;
+    Ok(news)
 }
 
 #[actix_web::main]

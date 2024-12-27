@@ -43,7 +43,7 @@ impl ManagingAgent {
 
         let agents: Vec<Box<dyn SpecialFunctions>> = vec![];
 
-        let mut fact_sheet: FactSheet = FactSheet {
+        let fact_sheet: FactSheet = FactSheet {
             project_description,
             project_scope: None,
             external_urls: None,

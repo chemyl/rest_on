@@ -3,12 +3,35 @@ use crate::helpers::command_lines::PrintCommand;
 use crate::models::general::llm::Message;
 use reqwest::Client;
 use serde::de::DeserializeOwned;
-use std::fs;
+use std::path::PathBuf;
+use std::{env, fs};
 
-pub const WEB_SERVER_PROJECT_PATH: &str = r#"C:\Users\Anatolii Maltsev\Documents\Coding\Rust\Projects\RustAgent\auto_gpt_agent"#;
-const EXEC_MAIN_PATH: &str = r#"C:\Users\Anatolii Maltsev\Documents\Coding\Rust\Projects\RustAgent\auto_gpt_agent\src\main2.rs"#;
-const API_SCHEMA_PATH: &str = r#"C:\Users\Anatolii Maltsev\Documents\Coding\Rust\Projects\RustAgent\auto_gpt_agent\source\schemas\api_schema.json"#;
-const CODE_TEMPLATE_PATH: &str = r#"C:\Users\Anatolii Maltsev\Documents\Coding\Rust\Projects\RustAgent\auto_gpt_agent\source\web_server_code_template.rs"#;
+fn get_project_root() -> PathBuf {
+    env::current_dir().expect("Failed to get current directory")
+}
+const EXEC_MAIN_PATH: &str = r#"src\main2.rs"#;
+const API_SCHEMA_PATH: &str = r#"source\schemas\api_schema.json"#;
+const CODE_TEMPLATE_PATH: &str = r#"source\web_server_code_template.rs"#;
+
+pub fn get_web_server_project_path() -> String {
+    // let project_root = get_project_root();
+    get_project_root().to_str().unwrap().to_string()
+}
+
+pub fn get_exec_main_path() -> String {
+    let project_root = get_project_root();
+    project_root.join(EXEC_MAIN_PATH).to_str().unwrap().to_string()
+}
+
+pub fn get_api_schema_path() -> String {
+    let project_root = get_project_root();
+    project_root.join(API_SCHEMA_PATH).to_str().unwrap().to_string()
+}
+
+pub fn get_code_template_path() -> String {
+    let project_root = get_project_root();
+    project_root.join(CODE_TEMPLATE_PATH).to_str().unwrap().to_string()
+}
 
 /// Extends an AI function by formatting the input and creating a system message.
 /// This function prepares a message in the format expected by GPT models.
@@ -87,7 +110,7 @@ pub async fn check_status_code(client: &Client, url: &str) -> Result<u16, reqwes
 /// # Returns
 /// The contents of the code template as a `String`.
 pub fn read_code_template_contents() -> String {
-    let path: String = String::from(CODE_TEMPLATE_PATH);
+    let path: String = String::from(get_code_template_path());
     fs::read_to_string(path).expect("Failed to read code template")
 }
 
@@ -96,7 +119,7 @@ pub fn read_code_template_contents() -> String {
 /// # Returns
 /// The contents of the `main2.rs` file as a `String`.
 pub fn read_exec_main_contents() -> String {
-    let path: String = String::from(EXEC_MAIN_PATH);
+    let path: String = String::from(get_exec_main_path());
     fs::read_to_string(path).expect("Failed to read code template")
 }
 
@@ -105,7 +128,7 @@ pub fn read_exec_main_contents() -> String {
 /// # Arguments
 /// - `contents`: The code to write into the file.
 pub fn save_backend_code(contents: &String) {
-    let path: String = String::from(EXEC_MAIN_PATH);
+    let path: String = String::from(get_exec_main_path());
     fs::write(path, contents).expect("Failed to write main2.rs file");
 }
 
@@ -114,9 +137,22 @@ pub fn save_backend_code(contents: &String) {
 /// # Arguments
 /// - `api_endpoints`: The API endpoints to save as a JSON string.
 pub fn save_api_endpoints(api_endpoints: &String) {
-    let path: String = String::from(API_SCHEMA_PATH);
+    let path: String = String::from(get_api_schema_path());
     fs::write(path, api_endpoints).expect("Failed to write API Endpoints to file");
 }
+
+// #[cfg(test)]
+// mod tests {
+//     use super::*;
+//     #[test]
+//     fn tests_paths() {
+//         println!("{:?}", get_api_schema_path());
+//         println!("{:?}", get_code_template_path());
+//         println!("{:?}", get_exec_main_path());
+//         println!("{:?}", get_web_server_project_path());
+//     }
+// }
+
 
 // #[cfg(test)]
 // mod tests {

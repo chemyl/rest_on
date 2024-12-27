@@ -2,14 +2,11 @@ use crate::ai_functions::ai_func_backend::{
     print_backend_webserver_code, print_fixed_code, print_improved_webserver_code,
     print_rest_api_endpoints,
 };
-use crate::helpers::general::{
-    check_status_code, read_code_template_contents, read_exec_main_contents, save_api_endpoints,
-    save_backend_code,
-};
+use crate::helpers::general::{check_status_code, get_web_server_project_path, read_code_template_contents, read_exec_main_contents, save_api_endpoints, save_backend_code};
 use std::path::Path;
 
 use crate::helpers::command_lines::{confirm_safe_code, PrintCommand};
-use crate::helpers::general::{ai_task_request, WEB_SERVER_PROJECT_PATH};
+use crate::helpers::general::ai_task_request;
 use crate::models::agent_basic::basic_agent::{AgentState, BasicAgent};
 use crate::models::agents::agent_traits::{FactSheet, RouteObject, SpecialFunctions};
 
@@ -54,7 +51,7 @@ impl AgentBackendDeveloper {
     /// - `fact_sheet`: A mutable reference to the fact sheet containing project information
     async fn call_initial_backend_code(&mut self, fact_sheet: &mut FactSheet) {
         let code_template_str: String = read_code_template_contents();
-        // Concatenate Instruction
+
         let msg_context: String = format!(
             "CODE TEMPLATE: {} \n PROJECT_DESCRIPTION: {} \n",
             code_template_str, fact_sheet.project_description
@@ -172,7 +169,6 @@ impl SpecialFunctions for AgentBackendDeveloper {
                 }
 
                 AgentState::UnitTesting => {
-                    // API SAFETY GUARD
                     PrintCommand::UnitTest.print_agent_message(
                         &self.attributes.position.as_str(),
                         "Backend Code Unit Testing: Ensuring Safe Code",
@@ -184,7 +180,6 @@ impl SpecialFunctions for AgentBackendDeveloper {
                         panic!("Better go work on some AI alignment instead...");
                     }
 
-                    // Build and testing code
                     PrintCommand::UnitTest.print_agent_message(
                         &self.attributes.position.as_str(),
                         "Backend Code Unit Testing: Building web server...",
@@ -192,13 +187,12 @@ impl SpecialFunctions for AgentBackendDeveloper {
 
                     let build_backend_server = Command::new("cargo")
                         .args(&["build", "--bin", "main2"])
-                        .current_dir(WEB_SERVER_PROJECT_PATH)
+                        .current_dir(get_web_server_project_path())
                         .stdout(Stdio::piped())
                         .stderr(Stdio::piped())
                         .output()
                         .expect("Failed to build backend application");
 
-                    // determine errors
                     if build_backend_server.status.success() {
                         self.bug_count = 0;
                         PrintCommand::UnitTest.print_agent_message(
@@ -246,27 +240,16 @@ impl SpecialFunctions for AgentBackendDeveloper {
 
 
                     let binary_name = "main2";
-                    // Путь к собранному бинарнику
                     let binary_path = Path::new("target/debug").join(binary_name);
                     if binary_path.exists() {
                         println!("Running binary: {:?}", binary_path);
                     }
 
-                    // Запуск бинарника
                     let mut run_backend_server: std::process::Child = Command::new(binary_path)
-                        .stdout(Stdio::inherit()) // Наследуем stdout для прямого вывода в консоль
-                        .stderr(Stdio::inherit()) // Наследуем stderr для прямого вывода ошибок
-                        .spawn() // Используем spawn, чтобы запустить в текущем процессе
+                        .stdout(Stdio::inherit())
+                        .stderr(Stdio::inherit())
+                        .spawn()
                         .expect("Failed to run backend application");
-
-
-                    // let mut run_backend_server: std::process::Child = Command::new("cargo")
-                    //     .arg("run")
-                    //     .current_dir(WEB_SERVER_PROJECT_PATH)
-                    //     .stdout(Stdio::piped())
-                    //     .stderr(Stdio::piped())
-                    //     .spawn()
-                    //     .expect("Failed to run backend application");
 
                     PrintCommand::UnitTest.print_agent_message(
                         &self.attributes.position.as_str(),
@@ -335,6 +318,7 @@ impl SpecialFunctions for AgentBackendDeveloper {
     }
 }
 
+
 // #[cfg(test)]
 // mod tests {
 //     use super::*;
@@ -369,35 +353,35 @@ impl SpecialFunctions for AgentBackendDeveloper {
 //     }
 // }
 
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[tokio::test]
-    async fn tests_backend_developer() {
-        let mut agent: AgentBackendDeveloper = AgentBackendDeveloper::new();
-
-        let fact_sheet_str: &str = r#"
-      {
-        "project_description": "build a website that fetches and tracks fitness progress with timezone information",
-        "project_scope": {
-          "is_crud_required": false,
-          "is_user_login_and_logout": false,
-          "is_external_urls_required": false
-        },
-        "external_urls": [],
-        "backend_code": null,
-        "api_endpoint_schema": null
-      }"#;
-
-        let mut factsheet: FactSheet = serde_json::from_str(fact_sheet_str).unwrap();
-
-        // agent.attributes.state = AgentState::Discovery;
-        agent.attributes.state = AgentState::UnitTesting;
-        agent
-            .execute(&mut factsheet)
-            .await
-            .expect("Failed to execute Backend Developer agent");
-    }
-}
+//
+// #[cfg(test)]
+// mod tests {
+//     use super::*;
+//
+//     #[tokio::test]
+//     async fn tests_backend_developer() {
+//         let mut agent: AgentBackendDeveloper = AgentBackendDeveloper::new();
+//
+//         let fact_sheet_str: &str = r#"
+//       {
+//         "project_description": "build a website that fetches and tracks fitness progress with timezone information",
+//         "project_scope": {
+//           "is_crud_required": false,
+//           "is_user_login_and_logout": false,
+//           "is_external_urls_required": false
+//         },
+//         "external_urls": [],
+//         "backend_code": null,
+//         "api_endpoint_schema": null
+//       }"#;
+//
+//         let mut factsheet: FactSheet = serde_json::from_str(fact_sheet_str).unwrap();
+//
+//         agent.attributes.state = AgentState::Discovery;
+//         // agent.attributes.state = AgentState::UnitTesting;
+//         agent
+//             .execute(&mut factsheet)
+//             .await
+//             .expect("Failed to execute Backend Developer agent");
+//     }
+// }

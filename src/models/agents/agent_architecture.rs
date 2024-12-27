@@ -106,9 +106,6 @@ impl SpecialFunctions for AgentSolutionArchitect {
                 }
 
                 AgentState::UnitTesting => {
-                    /// Filters and verifies external URLs for the project
-                    ///
-                    /// This section ensures only valid URLs with a status code of 200 are retained.
                     let mut excluded_external_urls: Vec<String> = vec![];
 
                     let client: Client = Client::builder()
