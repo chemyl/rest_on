@@ -159,4 +159,4 @@ Welcome contributions! If you have ideas to improve the project, please create a
 
 ## **License**
 
-This project is licensed under the MIT License - see the [LICENSE](https://github.com/chemyl/auto_gpt_agent/master/LICENSE) file for details.
+This project is licensed under the MIT License - see the [LICENSE](https://github.com/chemyl/auto_gpt_agent/blob/master/LICENSE) file for details.
