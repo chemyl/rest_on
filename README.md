@@ -54,7 +54,15 @@ Run the following command to install project dependencies:
 cargo build
 ```
 
-### 4. Run the Project
+### 4.Add OPEN_AI Keys
+
+```text
+    OPEN_AI_ORG
+    OPEN_AI_KEY
+.env
+```
+
+### 5. Run the Project
 
 Start the project with:
 
