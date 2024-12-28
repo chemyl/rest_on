@@ -10,8 +10,6 @@ Whether you need a simple `CRUD app` or a sophisticated `SAAS platform`, Auto GP
 - **🛠️ Template Flexibility**: Easily adapt web server templates to different requirements.
 - **🌍 Ease of Use**: Simple interface to interact with the project.
 
-[![Documentation](https://img.shields.io/badge/Documentation-Click_here-blue)](https://chemyl.github.io/rest_on/)
-
 ## **Technologies Used**
 ![Rust Version](https://img.shields.io/badge/rust-1.83.0%20-green)
 ![Actix-web Version](https://img.shields.io/badge/actix_web-4.9.0%20-yellow)
@@ -30,6 +28,7 @@ Whether you need a simple `CRUD app` or a sophisticated `SAAS platform`, Auto GP
 - **Tokio**: An asynchronous framework for Rust used for parallel task handling and async calls.
 - **Reqwest**: An HTTP client for interacting with external APIs.
 - **GPT API**: Used for generating code and executing tasks based on text-based queries.
+[![Documentation](https://img.shields.io/badge/Documentation-Click_here-blue)](https://chemyl.github.io/rest_on/)
 
 ## **Installation**
 
