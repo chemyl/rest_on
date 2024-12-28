@@ -1,6 +1,6 @@
-# **Auto GPT Agent**
+# **rest_on**
 
-Auto GPT Agent is an advanced tool that leverages the power of OpenAI's GPT to automate the generation of backend code for your projects and prototypes.
+rest_on is an advanced tool that leverages the power of OpenAI's GPT to automate the generation of backend code for your projects and prototypes.
 It aims to streamline your development process, enabling the automatic creation of full-stack web applications and more complex systems.
 Whether you need a simple `CRUD app` or a sophisticated `SAAS platform`, Auto GPT Agent has you covered.
 
