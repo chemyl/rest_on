@@ -144,6 +144,10 @@ async fn main() -> std::io::Result<()> {
 - **Command-Line Interface (CLI)**: A more advanced CLI for managing the project.
 - **Support for Additional Databases**: Integration with more databases like MongoDB, MySQL, SQLite, and others.
 - **CI/CD Integration**: Automate deployment pipelines.
+- **Project requirements**: Perform in-depth client onboarding.
+- **Extend testing**: Test all dynamic routes.
+- **Frontend development**: Develop frontend Automation Agent based on Yew.
+- **Local LLM**: Introduced local open source LLMs.
 
 ## **Contributing**
 
